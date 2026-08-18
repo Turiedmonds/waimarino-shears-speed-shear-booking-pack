@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Waimarino Shearing — Speed Shear Hire & Booking Pack</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div>
+        <p class="eyebrow">Waimarino Shearing Incorporated</p>
+        <h1>Speed Shear Hire & Booking Pack</h1>
+        <p class="subtitle">Hire information, booking details and competition configuration in one pack.</p>
+      </div>
+      <div class="header-actions no-print">
+        <label class="file-button" for="bookingFileInput">Open existing booking file</label>
+        <input id="bookingFileInput" type="file" accept="application/json,.json" hidden>
+        <button id="saveDraftBtn" class="button secondary" type="button">Save draft</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <nav class="steps no-print" aria-label="Booking pack steps">
+      <button class="step-button active" type="button" data-step="1"><span>1</span> Hire Information</button>
+      <button class="step-button" type="button" data-step="2"><span>2</span> Booking Details</button>
+      <button class="step-button" type="button" data-step="3"><span>3</span> Competition Configuration</button>
+      <button class="step-button" type="button" data-step="4"><span>4</span> Review & Download</button>
+    </nav>
+
+    <section class="step-panel active" data-panel="1">
+      <div class="panel-heading">
+        <p class="section-kicker">Step 1</p>
+        <h2>Hire Information</h2>
+        <p>This page explains what is included, what the organiser must provide and what is required for setup.</p>
+      </div>
+
+      <div class="info-grid">
+        <article class="card">
+          <h3>What we provide</h3>
+          <ul>
+            <li>Two-stand speed shear stand</li>
+            <li>Two Heiniger Evo shearing plants</li>
+            <li>Speed Shear Timing System</li>
+            <li>Two TVs for displaying timing, points and draws</li>
+            <li>Devices required for judging interaction with the timing system</li>
+            <li>Catching pens incorporated into the speed shear stand</li>
+            <li>Backup manual timing equipment, including stopwatches</li>
+            <li>Extension leads and cable reels required for our supplied equipment</li>
+            <li>Transport, setup, testing and pack-down of our equipment</li>
+            <li>A minimum of three Waimarino Shearing personnel to operate the system</li>
+            <li>Competition roster forms, if required, to assist with competitor entries</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>What the organiser provides</h3>
+          <ul>
+            <li>Stage, trailer or suitable ground-level setup area</li>
+            <li>Suitable electrical power supply</li>
+            <li>Lighting</li>
+            <li>Sound / PA system</li>
+            <li>Generator, if required</li>
+            <li>Any sheep yards or pens required beyond our catching pens</li>
+            <li>Competition judges</li>
+            <li>Sheep-handling personnel</li>
+            <li>Staff for competitor entries, entry fees and sign-in</li>
+          </ul>
+          <p class="note"><strong>Our staff operate the timing system.</strong> They do not undertake judging, competitor payment/entry handling or sheep-handling roles.</p>
+        </article>
+      </div>
+
+      <div class="info-grid">
+        <article class="card">
+          <h3>Space required</h3>
+          <p class="big-measure">4.8 m wide × 2.9 m deep × 2.45 m high</p>
+          <p>The shearing board itself is 1.8 m from front to back. The 2.9 m overall depth is measured from the front edge of the board to the rear catching-pen fence.</p>
+          <p>Additional room is required around the stand for safe access and the timing-system operating area.</p>
+        </article>
+
+        <article class="card">
+          <h3>Setup and venue requirements</h3>
+          <p>Allow approximately <strong>four hours for setup and testing</strong>, provided the required stage/setup area, power and other organiser-supplied infrastructure are ready when our team arrives.</p>
+          <p>For early-start competitions, setup may need to occur the day before. Equipment left onsite overnight must be kept secure and protected from weather.</p>
+          <p>Indoor setup is preferred. Waimarino Shearing Incorporated may delay, stop or decline setup or operation where conditions present an unreasonable safety risk to people or equipment.</p>
+        </article>
+      </div>
+
+      <div class="page-actions no-print">
+        <span></span>
+        <button class="button primary next-step" type="button" data-next="2">Continue to Booking</button>
+      </div>
+    </section>
+
+    <section class="step-panel" data-panel="2">
+      <div class="panel-heading">
+        <p class="section-kicker">Step 2</p>
+        <h2>Booking Details</h2>
+        <p>Enter the key details for the event. The person named as the contact will also be recorded as the person accepting the booking terms.</p>
+      </div>
+
+      <div class="form-grid two-col">
+        <div class="field full">
+          <label for="competitionName">Competition / Speed Shear name</label>
+          <input id="competitionName" type="text" required>
+        </div>
+        <div class="field">
+          <label for="contactPerson">Contact person</label>
+          <input id="contactPerson" type="text" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone number</label>
+          <input id="phone" type="tel" required>
+        </div>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" type="email" required>
+        </div>
+        <div class="field">
+          <label for="venue">Venue / location</label>
+          <input id="venue" type="text" required>
+        </div>
+        <div class="field">
+          <label for="competitionDate">Competition date</label>
+          <input id="competitionDate" type="date" required>
+        </div>
+        <div class="field">
+          <label for="startTime">Competition start time</label>
+          <input id="startTime" type="time" required>
+        </div>
+      </div>
+
+      <section class="cost-box">
+        <div>
+          <p class="section-kicker">Booking cost</p>
+          <h3>NZ$750 + GST</h3>
+        </div>
+        <dl>
+          <div><dt>Deposit</dt><dd>NZ$300 — due no later than 14 days before the event</dd></div>
+          <div><dt>Balance</dt><dd>Payable within 14 days after completion of the event</dd></div>
+          <div><dt>Travel</dt><dd>Included</dd></div>
+          <div><dt>Accommodation</dt><dd>Additional if required</dd></div>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h3>Competition entries</h3>
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="entryMethod">How are competitors entering?</label>
+            <select id="entryMethod">
+              <option value="">Select an option</option>
+              <option value="pre-entry">Pre-entry only</option>
+              <option value="on-day">Entries on the day only</option>
+              <option value="both">Both</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="digitalEntries">Are entries being collected digitally?</label>
+            <select id="digitalEntries">
+              <option value="">Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+        </div>
+        <p class="help-text">Waimarino Shearing can provide the competition roster form if required. The organiser remains responsible for collecting entries, payments and sign-ins.</p>
+      </section>
+
+      <details class="terms-card">
+        <summary>Read Hire Terms &amp; Conditions</summary>
+        <div class="terms-content">
+          <h4>Hire fee and payment</h4>
+          <p>The standard hire fee is NZ$750 plus GST. Travel to and from the event is included. A NZ$300 deposit is required no later than 14 days before the event. The remaining balance is payable within 14 days following completion of the event. Separate invoices will be issued for the deposit and remaining balance.</p>
+          <p>If the deposit has not been received by the due date following reasonable reminders, Waimarino Shearing Incorporated may treat the booking as cancelled.</p>
+          <h4>Accommodation</h4>
+          <p>Accommodation is not included in the standard hire fee. Where accommodation is reasonably required because of travel, event timing or a day-before setup, Waimarino Shearing Incorporated will arrange the accommodation and charge the organiser the actual accommodation cost in addition to the hire fee. Where reasonably possible, the organiser will be advised of the cost before the accommodation is booked.</p>
+          <h4>Cancellation</h4>
+          <p>If the organiser cancels before the Waimarino Shearing team has departed for the event, amounts already paid will be refunded except for any non-refundable accommodation or other costs already incurred specifically for that booking.</p>
+          <p>If cancellation occurs after our team has departed for the event, the NZ$300 deposit is non-refundable. Any non-refundable accommodation costs already incurred also remain payable.</p>
+          <p>If Waimarino Shearing Incorporated is unable to fulfil the booking, amounts paid by the organiser will be refunded.</p>
+          <h4>Postponement</h4>
+          <p>Where an event is postponed before our team has departed, the booking and deposit may be transferred to one new mutually agreed date, subject to Waimarino Shearing Incorporated being available. If we are unable to service the proposed replacement date, amounts paid will be refunded except for any non-refundable costs already incurred.</p>
+          <p>If an event is postponed after our team has departed, the original NZ$300 deposit is retained. A replacement event date will be treated as a new booking and will require a new deposit.</p>
+          <h4>Equipment and operating conditions</h4>
+          <p>The organiser must take reasonable care to protect equipment supplied by Waimarino Shearing Incorporated. The organiser may be responsible for reasonable repair or replacement costs where equipment is damaged through negligence, misuse or deliberate actions by the organiser, its personnel, competitors, or others for whom the organiser is responsible.</p>
+          <p>Waimarino Shearing Incorporated may delay, stop or decline setup or operation where conditions present an unreasonable safety risk to people or equipment.</p>
+          <h4>Competition operation</h4>
+          <p>The organiser remains responsible for the running and administration of the competition, including judging, sheep handling, competitor entries, entry fees and sign-in. Waimarino Shearing Incorporated is responsible for setting up and operating its timing system and supplied equipment using the competition information provided by the organiser.</p>
+        </div>
+      </details>
+
+      <div class="acceptance-box">
+        <label class="checkbox-line">
+          <input id="termsAccepted" type="checkbox">
+          <span>I have read and agree to the Waimarino Shearing Incorporated Hire Terms &amp; Conditions.</span>
+        </label>
+        <div class="acceptance-record">
+          <div><span>Accepted by</span><strong id="acceptedByDisplay">—</strong></div>
+          <div><span>Date accepted</span><strong id="acceptedAtDisplay">—</strong></div>
+        </div>
+        <p class="important-note">Submitting this booking does not confirm the booking. The booking is confirmed once the deposit has been paid.</p>
+      </div>
+
+      <div class="page-actions no-print">
+        <button class="button secondary prev-step" type="button" data-prev="1">Back</button>
+        <button class="button primary next-step" type="button" data-next="3">Continue to Competition Configuration</button>
+      </div>
+    </section>
+
+    <section class="step-panel" data-panel="3">
+      <div class="panel-heading">
+        <p class="section-kicker">Step 3</p>
+        <h2>Competition Configuration</h2>
+        <p>Tell us how your competition is structured. Only information that affects the competition setup is collected here.</p>
+      </div>
+
+      <section class="card">
+        <div class="card-heading-row">
+          <div>
+            <h3>Grades &amp; events</h3>
+            <p>Select everything being run. Each selection will create its own progression section below.</p>
+          </div>
+          <button id="progressionHelpBtn" class="text-button no-print" type="button">How does progression work?</button>
+        </div>
+        <div id="gradeChoices" class="choice-grid">
+          <label><input type="checkbox" value="Junior"> Junior</label>
+          <label><input type="checkbox" value="Intermediate"> Intermediate</label>
+          <label><input type="checkbox" value="Senior"> Senior</label>
+          <label><input type="checkbox" value="Open"> Open</label>
+          <label><input type="checkbox" value="Teams"> Teams</label>
+          <label><input id="otherGradeToggle" type="checkbox" value="Other"> Other</label>
+        </div>
+        <div id="otherGradeWrap" class="field compact hidden">
+          <label for="otherGradeName">Other grade / event name</label>
+          <input id="otherGradeName" type="text" placeholder="Enter grade or event name">
+        </div>
+      </section>
+
+      <div id="eventConfigs" class="event-configs"></div>
+
+      <section class="card">
+        <h3>Judging configuration</h3>
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="penJudges">Number of pen judges</label>
+            <input id="penJudges" type="number" min="0" step="1" value="0">
+          </div>
+          <div class="field">
+            <label for="hasBoardJudge">Will there be a board judge?</label>
+            <select id="hasBoardJudge">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          <div id="boardJudgeCountWrap" class="field hidden">
+            <label for="boardJudges">Number of board judges</label>
+            <input id="boardJudges" type="number" min="1" step="1" value="1">
+          </div>
+        </div>
+      </section>
+
+      <div class="page-actions no-print">
+        <button class="button secondary prev-step" type="button" data-prev="2">Back</button>
+        <button class="button primary next-step" type="button" data-next="4">Review Booking</button>
+      </div>
+    </section>
+
+    <section class="step-panel" data-panel="4">
+      <div class="panel-heading">
+        <p class="section-kicker">Step 4</p>
+        <h2>Review &amp; Download</h2>
+        <p>Check the booking before saving it. The Booking File can be reopened in this pack later and will be used for timing-system import. The Booking Pack is a human-readable copy for your records.</p>
+      </div>
+      <div id="reviewWarnings" class="warning-box hidden"></div>
+      <div id="reviewContent" class="review-content"></div>
+      <div class="download-grid no-print">
+        <button id="downloadBookingFileBtn" class="download-card" type="button"><strong>Download Booking File</strong><span>Structured JSON file for reopening and timing-system import.</span></button>
+        <button id="downloadBookingPackBtn" class="download-card" type="button"><strong>Download Booking Pack</strong><span>Human-readable HTML copy for saving, sharing or printing.</span></button>
+        <button id="printBookingPackBtn" class="download-card" type="button"><strong>Print / Save as PDF</strong><span>Use your browser's print option to create a PDF copy.</span></button>
+      </div>
+      <div class="page-actions no-print"><button class="button secondary prev-step" type="button" data-prev="3">Back</button><span></span></div>
+    </section>
+  </main>
+
+  <dialog id="progressionHelpDialog">
+    <div class="dialog-body">
+      <div class="dialog-heading"><h3>Competition progression example</h3><button id="closeProgressionHelpBtn" class="icon-button" type="button" aria-label="Close">×</button></div>
+      <p>Build each grade from the first round through to the final. For example:</p>
+      <div class="example-flow"><span>Heats<br><small>1 sheep • 12 qualify</small></span><b>→</b><span>Top 12<br><small>1 sheep • 6 qualify</small></span><b>→</b><span>Semi-final<br><small>1 sheep • 2 qualify</small></span><b>→</b><span>Final<br><small>2 sheep</small></span></div>
+      <p class="help-text">Use “Top X / Other” for round names such as Top 12, Top 8 or another competition-specific round.</p>
+    </div>
+  </dialog>
+
+  <template id="eventConfigTemplate">
+    <section class="event-card" data-event="">
+      <div class="event-card-header"><div><p class="section-kicker">Grade / event</p><h3 class="event-title"></h3></div></div>
+      <div class="form-grid three-col event-options">
+        <div class="field"><label>Clean shear event?</label><select class="clean-shear-select"><option value="no">No</option><option value="yes">Yes</option></select></div>
+        <div class="field clean-time-wrap hidden"><label>Clean shear time limit</label><input class="clean-time-input" type="text" placeholder="e.g. 1:50 or 110"></div>
+        <div class="field"><label>Number of prize placings</label><input class="prize-placings-input" type="number" min="1" step="1" value="3"></div>
+      </div>
+      <div class="rounds-heading"><div><h4>Competition progression</h4><p>Add the rounds in the order they will be run.</p></div><button class="button secondary small add-round-btn no-print" type="button">Add round</button></div>
+      <div class="round-list"></div>
+    </section>
+  </template>
+
+  <template id="roundTemplate">
+    <div class="round-row">
+      <div class="round-number" aria-hidden="true"></div>
+      <div class="field"><label>Round</label><select class="round-name-select"><option value="Heats">Heats</option><option value="Quarter-final">Quarter-final</option><option value="Semi-final">Semi-final</option><option value="Final">Final</option><option value="custom">Top X / Other</option></select><input class="custom-round-name hidden" type="text" placeholder="e.g. Top 12"></div>
+      <div class="field"><label>Sheep per shearer in this round</label><input class="sheep-per-shearer" type="number" min="1" step="1" value="1"></div>
+      <div class="field qualifiers-wrap"><label>Number qualifying to next round</label><input class="qualifiers-input" type="number" min="1" step="1"></div>
+      <button class="icon-button remove-round-btn no-print" type="button" aria-label="Remove round">×</button>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
