@@ -54,7 +54,7 @@
 
   function hasCompletedRoundFormat(section) {
     const rows = [...section.querySelectorAll('.round-row')];
-    if (rows.length < 2) return false;
+    if (rows.length < 1) return false;
 
     return rows.every(row => {
       const roundName = roundNameFromRow(row);
