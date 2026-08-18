@@ -1,6 +1,6 @@
 (() => {
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
-  const SUBMISSION_ENDPOINT = `https://formsubmit.co/ajax/${SUBMISSION_EMAIL}`;
+  const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzIBm6HZVp6QgC8rRmftdWoaGepFGj1ud6hJ9SjcoaS51fDeEFEF3TWqRaJnqC_ndDYmw/exec';
   const logoUrl = new URL('assets/Waimarino%20Shears%20Logo.png', window.location.href).href;
 
   const liveLogo = document.querySelector('.brand-logo');
@@ -30,16 +30,8 @@
           .download-brand-copy{min-width:0}
           .download-brand-name{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#c1121f}
           .download-brand-title{font-size:26px;font-weight:800;line-height:1.15;margin-top:4px;color:#111}
-          @media(max-width:650px){
-            .download-brand-header{gap:12px;align-items:center}
-            .download-brand-logo{height:58px;max-width:104px}
-            .download-brand-title{font-size:20px}
-            .download-brand-name{font-size:10px}
-          }
-          @media print{
-            .download-brand-logo{height:70px;max-width:125px}
-            .download-brand-header{break-inside:avoid}
-          }
+          @media(max-width:650px){.download-brand-header{gap:12px}.download-brand-logo{height:58px;max-width:104px}.download-brand-title{font-size:20px}.download-brand-name{font-size:10px}}
+          @media print{.download-brand-logo{height:70px;max-width:125px}.download-brand-header{break-inside:avoid}}
         </style>`;
 
       return html
@@ -56,9 +48,7 @@
         const qualifiers = round.qualifiers == null ? '' : `, ${round.qualifiers} qualify`;
         return `${round.name}: ${round.sheepPerShearer} sheep per shearer${qualifiers}`;
       }).join(' | ');
-      const clean = event.cleanShear
-        ? `Yes${event.cleanShearTimeLimit ? ` (${event.cleanShearTimeLimit})` : ''}`
-        : 'No';
+      const clean = event.cleanShear ? `Yes${event.cleanShearTimeLimit ? ` (${event.cleanShearTimeLimit})` : ''}` : 'No';
       return `${name} — Clean shear: ${clean}; Prize placings: ${event.prizePlacings}; ${rounds}`;
     });
     return parts.length ? parts.join('\n') : 'No grades or events selected.';
@@ -76,7 +66,7 @@
       `Date: ${pack.booking.competitionDate || '—'}`,
       `Start time: ${pack.booking.startTime || '—'}`,
       `Entry method: ${entries.method || '—'}`,
-      `Digital entries: ${entries.digitalEntries == null ? '—' : (entries.digitalEntries ? 'Yes' : 'No')}`,
+      `Digital entries: ${entries.digitalEntries == null ? '—' : entries.digitalEntries ? 'Yes' : 'No'}`,
       `Pen judges: ${judging.penJudges ?? 0}`,
       `Board judge: ${judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No'}`,
       '',
@@ -88,30 +78,6 @@
       `Accepted at: ${pack.booking.acceptedAt || '—'}`,
       `Booking ID: ${pack.identity?.bookingId || '—'}`
     ].join('\n');
-  }
-
-  function submissionPayload(pack) {
-    return {
-      _subject: `New Speed Shear Booking Request — ${pack.booking.competitionName || 'Unnamed competition'}`,
-      _template: 'table',
-      _replyto: pack.booking.email || '',
-      _captcha: 'false',
-      'Competition / Speed Shear': pack.booking.competitionName || '',
-      'Contact person': pack.booking.contactPerson || '',
-      'Phone': pack.booking.phone || '',
-      'Email': pack.booking.email || '',
-      'Venue / location': pack.booking.venue || '',
-      'Competition date': pack.booking.competitionDate || '',
-      'Start time': pack.booking.startTime || '',
-      'Entry arrangements': `${pack.entries?.method || '—'}; Digital: ${pack.entries?.digitalEntries == null ? '—' : (pack.entries.digitalEntries ? 'Yes' : 'No')}`,
-      'Judging': `Pen judges: ${pack.competitionSetup?.judging?.penJudges ?? 0}; Board judge: ${pack.competitionSetup?.judging?.boardJudge ? `Yes — ${pack.competitionSetup.judging.boardJudges || 0}` : 'No'}`,
-      'Competition configuration': eventSummary(pack),
-      'Terms accepted': pack.booking.termsAccepted ? 'Yes' : 'No',
-      'Accepted by': pack.booking.acceptedBy || '',
-      'Accepted at': pack.booking.acceptedAt || '',
-      'Booking ID': pack.identity?.bookingId || '',
-      'Booking file data': JSON.stringify(pack)
-    };
   }
 
   function setSubmissionStatus(type, message) {
@@ -130,6 +96,8 @@
       return;
     }
 
+    if (state?.booking?.status === 'submitted' && !window.confirm('This booking has already been submitted from this device. Send it again?')) return;
+
     const button = document.getElementById('submitBookingRequestBtn');
     const originalText = button?.textContent || 'Submit Booking Request';
     if (button) {
@@ -139,23 +107,18 @@
 
     try {
       const pack = buildPackage(true);
-      const response = await fetch(SUBMISSION_ENDPOINT, {
+      await fetch(SUBMISSION_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(submissionPayload(pack))
+        mode: 'no-cors',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(pack)
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || data.success === false) {
-        throw new Error(data.message || 'The booking could not be sent.');
-      }
 
       state.booking.status = 'submitted';
       if (typeof saveDraft === 'function') saveDraft(false);
       if (typeof buildReview === 'function') buildReview();
-      setSubmissionStatus('success', '<strong>Booking request submitted.</strong><br>Waimarino Shears will review your request and send the $300 deposit invoice. Your booking is not confirmed until the deposit has been paid.');
+      setSubmissionStatus('success', '<strong>Booking request sent.</strong><br>A confirmation email with the Booking Pack PDF should arrive shortly. Waimarino Shears will review the request and send the $300 deposit invoice. The booking is not confirmed until the deposit has been paid.');
     } catch (error) {
       console.error('Booking submission failed:', error);
       setSubmissionStatus('error', '<strong>We could not send the booking online.</strong><br>Please use the “Email Booking Request” option below instead.');
@@ -198,9 +161,7 @@
     if (!reviewPanel) return;
 
     const intro = reviewPanel.querySelector('.panel-heading p:last-child');
-    if (intro) {
-      intro.textContent = 'Check the details below, then send your booking request to Waimarino Shears. You can also save or print a copy for your records.';
-    }
+    if (intro) intro.textContent = 'Check the details below, then send your booking request to Waimarino Shears. You can also save or print a copy for your records.';
 
     const oldGrid = reviewPanel.querySelector('.download-grid');
     if (!oldGrid) return;
@@ -213,24 +174,22 @@
         <div><span>1</span><p><strong>Submit your booking request.</strong><br>Your completed details are sent to Waimarino Shears.</p></div>
         <div><span>2</span><p><strong>We review it.</strong><br>We will contact you if anything needs checking and send the $300 deposit invoice.</p></div>
         <div><span>3</span><p><strong>Booking confirmed.</strong><br>Your booking is confirmed once the deposit has been paid.</p></div>
-      </div>
-    `;
+      </div>`;
     oldGrid.parentNode.insertBefore(nextSteps, oldGrid);
 
     oldGrid.className = 'booking-actions no-print';
     oldGrid.innerHTML = `
       <div class="primary-submit-card">
         <button id="submitBookingRequestBtn" class="button submit-booking-button" type="button">Submit Booking Request</button>
-        <p>Sends your completed booking request directly to Waimarino Shears.</p>
+        <p>Sends your completed booking directly to Waimarino Shears. A PDF copy is emailed back to the organiser.</p>
       </div>
       <div id="submissionStatus" class="submission-status hidden" aria-live="polite"></div>
       <div class="secondary-booking-actions">
-        <button id="emailBookingRequestBtn" class="action-tile" type="button"><strong>Email Booking Request</strong><span>Opens your email app with the booking details filled in.</span></button>
+        <button id="emailBookingRequestBtn" class="action-tile" type="button"><strong>Email Booking Request</strong><span>Backup option: opens your email app with the booking details filled in.</span></button>
         <button id="saveBookingPackSimpleBtn" class="action-tile" type="button"><strong>Save a Copy</strong><span>Downloads a readable copy of your completed booking.</span></button>
         <button id="printBookingPackSimpleBtn" class="action-tile" type="button"><strong>Print / Save PDF</strong><span>Print the booking or save it as a PDF.</span></button>
         <button id="saveEditableCopyBtn" class="action-tile subtle" type="button"><strong>Save Editable Copy</strong><span>Optional: save a file you can reopen and change later.</span></button>
-      </div>
-    `;
+      </div>`;
 
     document.getElementById('submitBookingRequestBtn')?.addEventListener('click', submitBookingRequest);
     document.getElementById('emailBookingRequestBtn')?.addEventListener('click', emailBookingRequest);
@@ -245,35 +204,15 @@
   const style = document.createElement('style');
   style.textContent = `
     .next-steps-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--brand-2);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-top:18px}
-    .next-steps-card h3{margin:0 0 14px}
-    .next-steps-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .next-steps-card h3{margin:0 0 14px}.next-steps-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .next-steps-list>div{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)}
-    .next-steps-list span{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:var(--brand-2);color:#fff;font-weight:800}
-    .next-steps-list p{margin:0;color:#333}
-    .booking-actions{margin-top:16px;display:grid;gap:12px}
-    .primary-submit-card{background:#111;color:#fff;border-radius:14px;padding:22px;border-bottom:5px solid var(--brand-2);display:flex;align-items:center;justify-content:space-between;gap:18px}
-    .primary-submit-card p{margin:0;color:#ddd;max-width:520px}
-    .submit-booking-button{background:var(--brand-2);color:#fff;border:0;font-size:1.05rem;padding:13px 20px;white-space:nowrap}
-    .submit-booking-button:hover{background:#9f0e19}
-    .submit-booking-button:disabled{opacity:.65}
-    .secondary-booking-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    .action-tile{text-align:left;border:1px solid #bbb;border-radius:12px;background:#fff;padding:16px;color:#111}
-    .action-tile:hover{border-color:var(--brand-2);background:#fff7f7}
-    .action-tile strong{display:block;color:var(--brand-2);font-size:1rem}
-    .action-tile span{display:block;margin-top:5px;color:var(--muted);font-size:.92rem}
-    .action-tile.subtle strong{color:#333}
-    .submission-status{padding:14px 16px;border-radius:10px}
-    .submission-status.success{background:#f1faf3;border:1px solid #8ec89b;color:#1e5a2d}
-    .submission-status.error{background:#fff3f3;border:1px solid #db8e94;color:#7f1119}
-    @media(max-width:900px){
-      .next-steps-list{grid-template-columns:1fr}
-      .secondary-booking-actions{grid-template-columns:1fr 1fr}
-      .primary-submit-card{align-items:flex-start;flex-direction:column}
-    }
-    @media(max-width:540px){
-      .secondary-booking-actions{grid-template-columns:1fr}
-      .submit-booking-button{width:100%;white-space:normal}
-    }
+    .next-steps-list span{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:var(--brand-2);color:#fff;font-weight:800}.next-steps-list p{margin:0;color:#333}
+    .booking-actions{margin-top:16px;display:grid;gap:12px}.primary-submit-card{background:#111;color:#fff;border-radius:14px;padding:22px;border-bottom:5px solid var(--brand-2);display:flex;align-items:center;justify-content:space-between;gap:18px}.primary-submit-card p{margin:0;color:#ddd;max-width:560px}
+    .submit-booking-button{background:var(--brand-2);color:#fff;border:0;font-size:1.05rem;padding:13px 20px;white-space:nowrap}.submit-booking-button:hover{background:#9f0e19}.submit-booking-button:disabled{opacity:.65}
+    .secondary-booking-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.action-tile{text-align:left;border:1px solid #bbb;border-radius:12px;background:#fff;padding:16px;color:#111}.action-tile:hover{border-color:var(--brand-2);background:#fff7f7}.action-tile strong{display:block;color:var(--brand-2);font-size:1rem}.action-tile span{display:block;margin-top:5px;color:var(--muted);font-size:.92rem}.action-tile.subtle strong{color:#333}
+    .submission-status{padding:14px 16px;border-radius:10px}.submission-status.success{background:#f1faf3;border:1px solid #8ec89b;color:#1e5a2d}.submission-status.error{background:#fff3f3;border:1px solid #db8e94;color:#7f1119}
+    @media(max-width:900px){.next-steps-list{grid-template-columns:1fr}.secondary-booking-actions{grid-template-columns:1fr 1fr}.primary-submit-card{align-items:flex-start;flex-direction:column}}
+    @media(max-width:540px){.secondary-booking-actions{grid-template-columns:1fr}.submit-booking-button{width:100%;white-space:normal}}
   `;
   document.head.appendChild(style);
 
