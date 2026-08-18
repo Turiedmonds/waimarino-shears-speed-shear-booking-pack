@@ -5,7 +5,7 @@ const SETTINGS = {
   driveFolderName: 'Waimarino Speed Shear Bookings',
   logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
   brandRed: '#EB1D27',
-  termsEffectiveLabel: 'August 2026',
+  termsEffectiveLabel: '19 August 2026',
   currentAppVersion: '1.5.0',
   timingImportSchemaVersion: 2
 };
