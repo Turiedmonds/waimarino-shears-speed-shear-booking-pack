@@ -1,6 +1,6 @@
 (() => {
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
-  const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzIBm6HZVp6QgC8rRmftdWoaGepFGj1ud6hJ9SjcoaS51fDeEFEF3TWqRaJnqC_ndDYmw/exec';
+  const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypCyJhLAup1GugHAqIhPZnxKRFZ1Eoaq372Msmv9PL19cu8dvSI2NnSaj_ZajTsdf2YA/exec';
   const CURRENT_TERMS_VERSION = '2';
   const CURRENT_APP_VERSION = '1.2.0';
   const BRAND_RED = '#EB1D27';
