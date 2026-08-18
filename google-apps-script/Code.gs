@@ -109,7 +109,7 @@ function createBookingDocument_(pack) {
   appendSection_(body, 'Booking cost', [
     ['Hire fee', 'NZ$750 + GST'],
     ['Deposit', 'NZ$300 — due no later than 14 days before the event'],
-    ['Balance', 'Payable within 14 days after the event'],
+    ['Balance', 'Payable within 7 days after completion of the event'],
     ['Travel', 'Included'],
     ['Accommodation', 'Additional if required']
   ]);
@@ -127,13 +127,14 @@ function createBookingDocument_(pack) {
   ]);
 
   const events = pack.competitionSetup && pack.competitionSetup.events || {};
-  sectionHeading_(body, 'Competition configuration');
+  sectionHeading_(body, 'Programme of Events');
 
   Object.keys(events).forEach(name => appendEvent_(body, name, events[name]));
   if (!Object.keys(events).length) body.appendParagraph('No grades or events selected.').setSpacingAfter(6);
 
   appendSection_(body, 'Agreement', [
     ['Terms accepted', pack.booking.termsAccepted ? 'Yes' : 'No'],
+    ['Terms version', pack.booking.termsVersion || '—'],
     ['Accepted by', pack.booking.acceptedBy],
     ['Accepted at', formatDateTime_(pack.booking.acceptedAt)],
     ['Booking ID', pack.identity && pack.identity.bookingId || '—']
@@ -144,6 +145,7 @@ function createBookingDocument_(pack) {
   body.appendListItem('Waimarino Shears reviews this booking request.');
   body.appendListItem('A $300 deposit invoice is sent to the organiser.');
   body.appendListItem('The booking is confirmed once the deposit has been paid.');
+  body.appendListItem('If changes are needed after submission, contact Waimarino Shears directly. Please do not submit another booking request.');
 
   return doc;
 }
@@ -258,6 +260,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
         <strong>Your booking is not confirmed yet.</strong><br>
         Waimarino Shears will review the request and send the $300 deposit invoice. The booking is confirmed once the deposit has been paid.
       </div>
+      <p><strong>Need to make a change?</strong> Contact Waimarino Shears directly. Please do not submit another booking request.</p>
       <p>If anything needs checking, we will contact you.</p>
       <p>Waimarino Shears Incorporated</p>
     </div>`;
@@ -265,7 +268,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
   MailApp.sendEmail({
     to: pack.booking.email,
     subject,
-    body: `We have received your booking request for ${pack.booking.competitionName}. Your booking is not confirmed until the deposit has been paid.`,
+    body: `We have received your booking request for ${pack.booking.competitionName}. Your booking is not confirmed until the deposit has been paid. If changes are needed, contact Waimarino Shears directly and do not submit another booking request.`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: SETTINGS.receiverEmail,
@@ -278,7 +281,7 @@ function buildInternalEmailHtml_(pack) {
   return `
     <div style="font-family:Arial,sans-serif;color:#111;max-width:720px">
       <h2 style="margin-bottom:4px">New Speed Shear Booking Request</h2>
-      <p style="margin-top:0;color:#666">The full Booking Pack PDF and editable/importable Booking File are attached.</p>
+      <p style="margin-top:0;color:#666">The full Booking Pack PDF and timing-system Booking File are attached.</p>
       <table style="border-collapse:collapse;width:100%">
         ${emailRow_('Competition', pack.booking.competitionName)}
         ${emailRow_('Contact', pack.booking.contactPerson)}
@@ -290,6 +293,7 @@ function buildInternalEmailHtml_(pack) {
         ${emailRow_('Pen judges', judging.penJudges == null ? 0 : judging.penJudges)}
         ${emailRow_('Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No')}
         ${emailRow_('Accepted by', pack.booking.acceptedBy)}
+        ${emailRow_('Terms version', pack.booking.termsVersion || '—')}
         ${emailRow_('Booking ID', pack.identity && pack.identity.bookingId || '—')}
       </table>
       <p style="margin-top:18px"><strong>Status:</strong> Booking request received — awaiting review and deposit invoice.</p>
