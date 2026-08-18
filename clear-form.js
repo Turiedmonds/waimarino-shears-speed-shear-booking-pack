@@ -170,13 +170,20 @@
 
   function updateProgrammeGuidance() {
     const card = document.getElementById('competitionProgrammeCard');
-    if (!card) return;
+    if (!card) return false;
     const heading = card.querySelector('.competition-programme-heading');
     const guidance = heading?.nextElementSibling;
-    if (!guidance || guidance.tagName !== 'P') return;
+    if (!guidance || guidance.tagName !== 'P') return false;
 
     const hasProgramme = Boolean(card.querySelector('.competition-programme-row'));
     guidance.textContent = hasProgramme ? PROGRAMME_READY_GUIDANCE : PROGRAMME_EMPTY_GUIDANCE;
+    return true;
+  }
+
+  function waitForProgrammeGuidance(attempt = 0) {
+    if (updateProgrammeGuidance()) return;
+    if (attempt >= 30) return;
+    window.setTimeout(() => waitForProgrammeGuidance(attempt + 1), 100);
   }
 
   function installConfigurationUiPolish() {
@@ -243,7 +250,7 @@
     });
 
     refreshCopyShortcuts();
-    window.setTimeout(updateProgrammeGuidance, 0);
+    waitForProgrammeGuidance();
   }
 
   const style = document.createElement('style');
