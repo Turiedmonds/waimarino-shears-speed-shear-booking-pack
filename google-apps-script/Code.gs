@@ -5,8 +5,9 @@ const SETTINGS = {
   driveFolderName: 'Waimarino Speed Shear Bookings',
   logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
   brandRed: '#EB1D27',
-  currentTermsVersion: '2',
-  currentAppVersion: '1.2.0'
+  termsEffectiveLabel: 'August 2026',
+  currentAppVersion: '1.3.0',
+  timingImportSchemaVersion: 1
 };
 
 function doGet() {
@@ -19,13 +20,17 @@ function doPost(e) {
   try {
     const pack = normalisePack_(parseRequest_(e));
     validatePack_(pack);
+    assignBookingReference_(pack);
 
     const files = buildBookingFiles_(pack);
     saveBookingFiles_(files);
     sendInternalBookingEmail_(pack, files);
     sendOrganiserConfirmation_(pack, files.pdf);
 
-    return jsonResponse_({ ok: true, bookingId: pack.identity && pack.identity.bookingId || '' });
+    return jsonResponse_({
+      ok: true,
+      bookingReference: pack.identity && pack.identity.bookingReference || ''
+    });
   } catch (error) {
     console.error(error);
     return jsonResponse_({ ok: false, error: String(error && error.message || error) });
@@ -50,8 +55,9 @@ function parseRequest_(e) {
 function normalisePack_(pack) {
   if (!pack || typeof pack !== 'object') return pack;
   pack.appVersion = SETTINGS.currentAppVersion;
+  pack.identity = pack.identity || {};
   pack.booking = pack.booking || {};
-  pack.booking.termsVersion = SETTINGS.currentTermsVersion;
+  pack.booking.termsVersion = SETTINGS.termsEffectiveLabel;
   pack.commercial = pack.commercial || {};
   pack.commercial.balanceDueDaysAfterEvent = 7;
   return pack;
@@ -66,11 +72,58 @@ function validatePack_(pack) {
   if (!pack.booking.termsAccepted) throw new Error('Hire Terms & Conditions have not been accepted.');
 }
 
+function competitionYear_(value) {
+  const match = /^(\d{4})-\d{2}-\d{2}$/.exec(String(value || ''));
+  if (match) return match[1];
+  return Utilities.formatDate(new Date(), 'Pacific/Auckland', 'yyyy');
+}
+
+function assignBookingReference_(pack) {
+  pack.identity = pack.identity || {};
+  if (pack.identity.bookingReference) return pack.identity.bookingReference;
+
+  const year = competitionYear_(pack.booking && pack.booking.competitionDate);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const properties = PropertiesService.getScriptProperties();
+    const key = `bookingReferenceCounter_${year}`;
+    const current = Number(properties.getProperty(key) || 0);
+    const next = current + 1;
+    properties.setProperty(key, String(next));
+    pack.identity.bookingReference = `WS-${year}-${String(next).padStart(4, '0')}`;
+    return pack.identity.bookingReference;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function buildTimingImport_(pack) {
+  const setup = pack.competitionSetup || {};
+  return {
+    schemaVersion: SETTINGS.timingImportSchemaVersion,
+    type: 'speed_shear_timing_import',
+    appVersion: SETTINGS.currentAppVersion,
+    bookingReference: pack.identity && pack.identity.bookingReference || '',
+    competition: {
+      name: pack.booking.competitionName || '',
+      venue: pack.booking.venue || '',
+      date: pack.booking.competitionDate || '',
+      startTime: pack.booking.startTime || ''
+    },
+    competitionSetup: {
+      events: JSON.parse(JSON.stringify(setup.events || {})),
+      judging: JSON.parse(JSON.stringify(setup.judging || {}))
+    }
+  };
+}
+
 function buildBookingFiles_(pack) {
   const displayDate = formatFileDate_(pack.booking.competitionDate);
   const baseName = safeFileName_(pack.booking.competitionName || 'Speed Shear') + '_' + displayDate + '_Booking';
+  const timingImport = buildTimingImport_(pack);
   const json = Utilities.newBlob(
-    JSON.stringify(pack, null, 2),
+    JSON.stringify(timingImport, null, 2),
     'application/json',
     baseName + '.json'
   );
@@ -141,10 +194,10 @@ function createBookingDocument_(pack) {
 
   appendSection_(body, 'Agreement', [
     ['Terms accepted', pack.booking.termsAccepted ? 'Yes' : 'No'],
-    ['Terms version', pack.booking.termsVersion || '—'],
+    ['Terms version', SETTINGS.termsEffectiveLabel],
     ['Accepted by', pack.booking.acceptedBy],
     ['Accepted at', formatDateTime_(pack.booking.acceptedAt)],
-    ['Booking ID', pack.identity && pack.identity.bookingId || '—']
+    ['Booking Reference', pack.identity && pack.identity.bookingReference || '—']
   ]);
 
   appendNextSteps_(body);
@@ -216,10 +269,12 @@ function appendEvent_(parent, name, event) {
   const p = parent.appendParagraph(name);
   p.setBold(true).setFontSize(12).setForegroundColor('#111111').setSpacingBefore(5).setSpacingAfter(2);
 
-  const cleanShear = event && event.cleanShear
-    ? `Yes${event.cleanShearTimeLimit ? ` — ${event.cleanShearTimeLimit}` : ''}`
-    : 'No';
-  parent.appendParagraph(`Clean shear: ${cleanShear}    Prize placings: ${display_(event && event.prizePlacings)}`)
+  const summary = [];
+  if (event && event.cleanShear) {
+    summary.push(`Clean shear: Yes${event.cleanShearTimeLimit ? ` — ${event.cleanShearTimeLimit}` : ''}`);
+  }
+  summary.push(`Prize placings: ${display_(event && event.prizePlacings)}`);
+  parent.appendParagraph(summary.join('    '))
     .setSpacingBefore(0)
     .setSpacingAfter(3);
 
@@ -263,13 +318,14 @@ function getOrCreateFolder_(name) {
 }
 
 function sendInternalBookingEmail_(pack, files) {
-  const subject = `New Speed Shear Booking Request — ${pack.booking.competitionName}`;
+  const reference = pack.identity && pack.identity.bookingReference || '';
+  const subject = `New Speed Shear Booking Request — ${reference} — ${pack.booking.competitionName}`;
   const html = buildInternalEmailHtml_(pack);
 
   MailApp.sendEmail({
     to: SETTINGS.receiverEmail,
     subject,
-    body: `New booking request received for ${pack.booking.competitionName}. The PDF booking pack and timing-system booking file are attached.`,
+    body: `New booking request received for ${pack.booking.competitionName}. Booking Reference: ${reference}. The PDF booking pack and timing-system import file are attached.`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: pack.booking.email,
@@ -280,18 +336,20 @@ function sendInternalBookingEmail_(pack, files) {
 function sendOrganiserConfirmation_(pack, pdf) {
   if (!pack.booking.email) return;
 
-  const subject = `Waimarino Shears — Booking Request Received — ${pack.booking.competitionName}`;
+  const reference = pack.identity && pack.identity.bookingReference || '';
+  const subject = `Waimarino Shears — Booking Request Received — ${reference}`;
   const html = `
     <div style="font-family:Arial,sans-serif;color:#111;max-width:640px">
       <h2 style="margin-bottom:6px">Booking request received</h2>
       <p>Hi ${escapeHtml_(pack.booking.contactPerson || '')},</p>
       <p>We have received your booking request for <strong>${escapeHtml_(pack.booking.competitionName || '')}</strong>.</p>
+      <p><strong>Booking Reference:</strong> ${escapeHtml_(reference)}</p>
       <p>Your completed Booking Pack PDF is attached for your records.</p>
       <div style="border-left:5px solid ${SETTINGS.brandRed};background:#fff4f4;padding:12px 14px;margin:18px 0">
         <strong>Your booking is not confirmed yet.</strong><br>
         Waimarino Shears will review the request and send the $300 deposit invoice. The booking is confirmed once the deposit has been paid.
       </div>
-      <p><strong>Need to make a change?</strong> Contact Waimarino Shears directly. Please do not submit another booking request.</p>
+      <p><strong>Need to make a change?</strong> Contact Waimarino Shears directly and quote your Booking Reference. Please do not submit another booking request.</p>
       <p>If anything needs checking, we will contact you.</p>
       <p>Waimarino Shears Incorporated</p>
     </div>`;
@@ -299,7 +357,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
   MailApp.sendEmail({
     to: pack.booking.email,
     subject,
-    body: `We have received your booking request for ${pack.booking.competitionName}. Your Booking Pack PDF is attached. Your booking is not confirmed until the deposit has been paid. If changes are needed, contact Waimarino Shears directly and do not submit another booking request.`,
+    body: `We have received your booking request for ${pack.booking.competitionName}. Booking Reference: ${reference}. Your Booking Pack PDF is attached. Your booking is not confirmed until the deposit has been paid. If changes are needed, contact Waimarino Shears directly and do not submit another booking request.`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: SETTINGS.receiverEmail,
@@ -312,8 +370,9 @@ function buildInternalEmailHtml_(pack) {
   return `
     <div style="font-family:Arial,sans-serif;color:#111;max-width:720px">
       <h2 style="margin-bottom:4px">New Speed Shear Booking Request</h2>
-      <p style="margin-top:0;color:#666">The full Booking Pack PDF and timing-system Booking File are attached.</p>
+      <p style="margin-top:0;color:#666">The full Booking Pack PDF and timing-system import file are attached.</p>
       <table style="border-collapse:collapse;width:100%">
+        ${emailRow_('Booking Reference', pack.identity && pack.identity.bookingReference || '—')}
         ${emailRow_('Competition', pack.booking.competitionName)}
         ${emailRow_('Contact', pack.booking.contactPerson)}
         ${emailRow_('Phone', pack.booking.phone)}
@@ -324,8 +383,7 @@ function buildInternalEmailHtml_(pack) {
         ${emailRow_('Pen judges', judging.penJudges == null ? 0 : judging.penJudges)}
         ${emailRow_('Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No')}
         ${emailRow_('Accepted by', pack.booking.acceptedBy)}
-        ${emailRow_('Terms version', pack.booking.termsVersion || '—')}
-        ${emailRow_('Booking ID', pack.identity && pack.identity.bookingId || '—')}
+        ${emailRow_('Terms version', SETTINGS.termsEffectiveLabel)}
       </table>
       <p style="margin-top:18px"><strong>Status:</strong> Booking request received — awaiting review and deposit invoice.</p>
     </div>`;
