@@ -86,16 +86,15 @@ function createBookingDocument_(pack) {
   appendLogo_(body);
 
   const company = body.appendParagraph(SETTINGS.companyName.toUpperCase());
-  company.setForegroundColor('#c1121f').setBold(true).setFontSize(10);
+  company.setForegroundColor('#c1121f').setBold(true).setFontSize(10).setSpacingAfter(4);
 
   const heading = body.appendParagraph('Speed Shear Hire & Booking Pack');
   heading.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  heading.setForegroundColor('#111111');
+  heading.setForegroundColor('#111111').setSpacingBefore(0).setSpacingAfter(6);
   body.appendHorizontalRule();
 
   const status = body.appendParagraph('BOOKING REQUEST — NOT CONFIRMED UNTIL THE $300 DEPOSIT HAS BEEN PAID');
-  status.setBold(true).setForegroundColor('#c1121f').setFontSize(10);
-  body.appendParagraph('');
+  status.setBold(true).setForegroundColor('#c1121f').setFontSize(10).setSpacingBefore(4).setSpacingAfter(8);
 
   appendSection_(body, 'Booking details', [
     ['Competition / Speed Shear', pack.booking.competitionName],
@@ -103,8 +102,8 @@ function createBookingDocument_(pack) {
     ['Phone', pack.booking.phone],
     ['Email', pack.booking.email],
     ['Venue / location', pack.booking.venue],
-    ['Competition date', pack.booking.competitionDate],
-    ['Start time', pack.booking.startTime]
+    ['Competition date', formatEventDate_(pack.booking.competitionDate)],
+    ['Start time', formatEventTime_(pack.booking.startTime)]
   ]);
 
   appendSection_(body, 'Booking cost', [
@@ -128,10 +127,10 @@ function createBookingDocument_(pack) {
   ]);
 
   const events = pack.competitionSetup && pack.competitionSetup.events || {};
-  body.appendParagraph('Competition configuration').setHeading(DocumentApp.ParagraphHeading.HEADING2).setForegroundColor('#c1121f');
+  sectionHeading_(body, 'Competition configuration');
 
   Object.keys(events).forEach(name => appendEvent_(body, name, events[name]));
-  if (!Object.keys(events).length) body.appendParagraph('No grades or events selected.');
+  if (!Object.keys(events).length) body.appendParagraph('No grades or events selected.').setSpacingAfter(6);
 
   appendSection_(body, 'Agreement', [
     ['Terms accepted', pack.booking.termsAccepted ? 'Yes' : 'No'],
@@ -140,8 +139,8 @@ function createBookingDocument_(pack) {
     ['Booking ID', pack.identity && pack.identity.bookingId || '—']
   ]);
 
-  const next = body.appendParagraph('What happens next?');
-  next.setHeading(DocumentApp.ParagraphHeading.HEADING2).setForegroundColor('#c1121f');
+  const next = sectionHeading_(body, 'What happens next?');
+  next.setSpacingBefore(14);
   body.appendListItem('Waimarino Shears reviews this booking request.');
   body.appendListItem('A $300 deposit invoice is sent to the organiser.');
   body.appendListItem('The booking is confirmed once the deposit has been paid.');
@@ -167,9 +166,17 @@ function appendLogo_(body) {
   }
 }
 
-function appendSection_(body, heading, rows) {
+function sectionHeading_(body, heading) {
   const h = body.appendParagraph(heading);
-  h.setHeading(DocumentApp.ParagraphHeading.HEADING2).setForegroundColor('#c1121f');
+  h.setHeading(DocumentApp.ParagraphHeading.HEADING2)
+    .setForegroundColor('#c1121f')
+    .setSpacingBefore(12)
+    .setSpacingAfter(5);
+  return h;
+}
+
+function appendSection_(body, heading, rows) {
+  sectionHeading_(body, heading);
 
   const table = body.appendTable(rows.map(row => [String(row[0]), display_(row[1])]));
   for (let r = 0; r < table.getNumRows(); r++) {
@@ -180,17 +187,18 @@ function appendSection_(body, heading, rows) {
     labelCell.editAsText().setBold(true).setForegroundColor('#333333');
     valueCell.editAsText().setForegroundColor('#111111');
   }
-  body.appendParagraph('');
 }
 
 function appendEvent_(body, name, event) {
   const p = body.appendParagraph(name);
-  p.setBold(true).setFontSize(12).setForegroundColor('#111111');
+  p.setBold(true).setFontSize(12).setForegroundColor('#111111').setSpacingBefore(7).setSpacingAfter(2);
 
   const cleanShear = event && event.cleanShear
     ? `Yes${event.cleanShearTimeLimit ? ` — ${event.cleanShearTimeLimit}` : ''}`
     : 'No';
-  body.appendParagraph(`Clean shear: ${cleanShear}    Prize placings: ${display_(event && event.prizePlacings)}`);
+  body.appendParagraph(`Clean shear: ${cleanShear}    Prize placings: ${display_(event && event.prizePlacings)}`)
+    .setSpacingBefore(0)
+    .setSpacingAfter(4);
 
   const rounds = event && Array.isArray(event.rounds) ? event.rounds : [];
   if (rounds.length) {
@@ -206,9 +214,8 @@ function appendEvent_(body, name, event) {
       table.getRow(0).getCell(c).editAsText().setBold(true).setForegroundColor('#ffffff');
     }
   } else {
-    body.appendParagraph('No rounds entered.');
+    body.appendParagraph('No rounds entered.').setSpacingAfter(4);
   }
-  body.appendParagraph('');
 }
 
 function saveBookingFiles_(files) {
@@ -278,8 +285,8 @@ function buildInternalEmailHtml_(pack) {
         ${emailRow_('Phone', pack.booking.phone)}
         ${emailRow_('Email', pack.booking.email)}
         ${emailRow_('Venue', pack.booking.venue)}
-        ${emailRow_('Date', pack.booking.competitionDate)}
-        ${emailRow_('Start time', pack.booking.startTime)}
+        ${emailRow_('Date', formatEventDate_(pack.booking.competitionDate))}
+        ${emailRow_('Start time', formatEventTime_(pack.booking.startTime))}
         ${emailRow_('Pen judges', judging.penJudges == null ? 0 : judging.penJudges)}
         ${emailRow_('Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No')}
         ${emailRow_('Accepted by', pack.booking.acceptedBy)}
@@ -303,6 +310,33 @@ function entryMethodLabel_(value) {
 function display_(value) {
   if (value === undefined || value === null || value === '') return '—';
   return String(value);
+}
+
+function formatEventDate_(value) {
+  if (!value) return '—';
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value));
+  if (!match) return String(value);
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const monthIndex = Number(match[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return String(value);
+
+  return `${Number(match[3])} ${months[monthIndex]} ${match[1]}`;
+}
+
+function formatEventTime_(value) {
+  if (!value) return '—';
+  const match = /^(\d{1,2}):(\d{2})$/.exec(String(value));
+  if (!match) return String(value);
+
+  const hour24 = Number(match[1]);
+  if (hour24 < 0 || hour24 > 23) return String(value);
+  const hour12 = hour24 % 12 || 12;
+  const suffix = hour24 >= 12 ? 'PM' : 'AM';
+  return `${hour12}:${match[2]} ${suffix}`;
 }
 
 function formatDateTime_(value) {
