@@ -10,35 +10,60 @@
   padding: 5px;
 }
 
-/* Programme of Events help should read as an action, not a text link. */
-.programme-help-btn {
-  display: inline-flex;
+/* Programme of Events help: compact info icon beside the heading. */
+.rounds-heading {
+  display: grid;
+  grid-template-columns: auto auto minmax(12px, 1fr) auto;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
-  min-height: 38px;
-  padding: 7px 13px;
-  border: 1px solid #777;
-  border-radius: 9px;
-  background: #fff;
-  color: #111;
-  font-size: 0;
-  font-weight: 800;
-  line-height: 1;
-  text-decoration: none;
-  white-space: nowrap;
 }
 
-.programme-help-btn::after {
-  content: "Help";
-  font-size: .92rem;
+.rounds-heading > div:first-child {
+  grid-column: 1;
+}
+
+.programme-actions {
+  display: contents !important;
+}
+
+.programme-help-btn {
+  grid-column: 2;
+  width: 27px;
+  height: 27px;
+  min-width: 27px;
+  padding: 0;
+  border: 2px solid #c1121f !important;
+  border-radius: 50%;
+  background: #fff !important;
+  color: #c1121f !important;
+  font-size: 0 !important;
+  line-height: 1;
+  text-decoration: none !important;
+  display: inline-grid;
+  place-items: center;
+  justify-self: start;
+  cursor: pointer;
+}
+
+.programme-help-btn::before {
+  content: "i";
+  font-size: 17px;
+  line-height: 1;
+  font-weight: 900;
+  font-family: Georgia, "Times New Roman", serif;
+  transform: translateY(-1px);
 }
 
 .programme-help-btn:hover,
 .programme-help-btn:focus-visible {
-  border-color: #c1121f;
-  color: #c1121f;
-  background: #fff7f7;
-  text-decoration: none;
+  background: #c1121f !important;
+  color: #fff !important;
+  outline: none;
+}
+
+.rounds-heading .add-round-btn {
+  grid-column: 4;
+  justify-self: end;
 }
 
 @media (max-width: 850px) {
@@ -46,10 +71,22 @@
   .brand-logo { height: 72px; max-width: 126px; }
 }
 
+@media (max-width: 650px) {
+  .rounds-heading {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+
+  .rounds-heading .add-round-btn {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    margin-top: 4px;
+  }
+}
+
 @media (max-width: 540px) {
   .brand-lockup { gap: 12px; align-items: center; }
   .brand-logo { height: 56px; max-width: 100px; padding: 3px; }
-  .programme-help-btn { min-height: 36px; padding: 6px 11px; }
 }
 
 @media print {
