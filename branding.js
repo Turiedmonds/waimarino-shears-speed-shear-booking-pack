@@ -1,5 +1,13 @@
 (() => {
-  const logoUrl = new URL('assets/waimarino-shears-logo.png', window.location.href).href;
+  const logoUrl = new URL('assets/Waimarino%20Shears%20Logo.png', window.location.href).href;
+
+  // Correct the live header image to the exact uploaded asset path.
+  const liveLogo = document.querySelector('.brand-logo');
+  if (liveLogo) {
+    liveLogo.src = logoUrl;
+    liveLogo.alt = 'Waimarino Shears Incorporated logo';
+    liveLogo.onerror = null;
+  }
 
   if (typeof buildHumanPackHtml !== 'function') return;
 
@@ -7,16 +15,36 @@
   buildHumanPackHtml = function brandedHumanPackHtml() {
     const html = originalBuildHumanPackHtml();
     const logoBlock = `
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;padding-bottom:14px;border-bottom:4px solid #c1121f;">
-        <img src="${logoUrl}" alt="Waimarino Shears logo" style="width:auto;height:76px;max-width:132px;object-fit:contain;">
-        <div>
-          <div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#c1121f;">Waimarino Shears Incorporated</div>
-          <div style="font-size:24px;font-weight:800;line-height:1.15;margin-top:3px;">Speed Shear Hire &amp; Booking Pack</div>
+      <header class="download-brand-header">
+        <img class="download-brand-logo" src="${logoUrl}" alt="Waimarino Shears Incorporated logo">
+        <div class="download-brand-copy">
+          <div class="download-brand-name">Waimarino Shears Incorporated</div>
+          <div class="download-brand-title">Speed Shear Hire &amp; Booking Pack</div>
         </div>
-      </div>`;
+      </header>`;
+
+    const responsiveLogoStyles = `
+      <style>
+        .download-brand-header{display:flex;align-items:center;gap:18px;margin-bottom:20px;padding:0 0 16px;border-bottom:4px solid #c1121f}
+        .download-brand-logo{display:block;width:auto;height:86px;max-width:150px;object-fit:contain;flex:0 0 auto}
+        .download-brand-copy{min-width:0}
+        .download-brand-name{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#c1121f}
+        .download-brand-title{font-size:26px;font-weight:800;line-height:1.15;margin-top:4px;color:#111}
+        @media(max-width:650px){
+          .download-brand-header{gap:12px;align-items:center}
+          .download-brand-logo{height:58px;max-width:104px}
+          .download-brand-title{font-size:20px}
+          .download-brand-name{font-size:10px}
+        }
+        @media print{
+          .download-brand-logo{height:70px;max-width:125px}
+          .download-brand-header{break-inside:avoid}
+        }
+      </style>`;
 
     return html
+      .replace('</head>', `${responsiveLogoStyles}</head>`)
       .replace('<body>', `<body>${logoBlock}`)
-      .replace('<h1>Waimarino Shears — Speed Shear Hire &amp; Booking Pack</h1>', '');
+      .replace('<h1>Waimarino Shears Incorporated — Speed Shear Hire &amp; Booking Pack</h1>', '');
   };
 })();
