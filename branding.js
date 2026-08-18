@@ -1,8 +1,8 @@
 (() => {
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
   const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypCyJhLAup1GugHAqIhPZnxKRFZ1Eoaq372Msmv9PL19cu8dvSI2NnSaj_ZajTsdf2YA/exec';
-  const CURRENT_TERMS_VERSION = '2';
-  const CURRENT_APP_VERSION = '1.2.0';
+  const CURRENT_TERMS_VERSION = 'August 2026';
+  const CURRENT_APP_VERSION = '1.3.0';
   const BRAND_RED = '#EB1D27';
   const logoUrl = new URL('assets/Waimarino%20Shears%20Logo.png', window.location.href).href;
 
@@ -39,6 +39,35 @@
         const strong = item.querySelector('strong');
         if (strong) strong.textContent = value;
       }
+    });
+  }
+
+  function ensureTermsVersionReview() {
+    const agreementSection = [...document.querySelectorAll('#reviewContent .review-section')]
+      .find(section => section.querySelector('h3')?.textContent.trim() === 'Cost & agreement');
+    const list = agreementSection?.querySelector('.review-list');
+    if (!list || [...list.querySelectorAll('.review-item span')].some(span => span.textContent.trim() === 'Terms version')) return;
+
+    const item = document.createElement('div');
+    item.className = 'review-item';
+    item.innerHTML = `<span>Terms version</span><strong>${CURRENT_TERMS_VERSION}</strong>`;
+    list.appendChild(item);
+  }
+
+  function tidyReviewEventSummaries() {
+    if (typeof state === 'undefined') return;
+    document.querySelectorAll('#reviewContent .review-event').forEach(card => {
+      const name = card.querySelector('h4')?.textContent.trim();
+      const event = name ? state.competitionSetup?.events?.[name] : null;
+      const summary = card.querySelector('p');
+      if (!summary || !event) return;
+
+      const parts = [];
+      if (event.cleanShear) {
+        parts.push(`<strong>Clean shear:</strong> Yes${event.cleanShearTimeLimit ? ` — ${escapeHtml(event.cleanShearTimeLimit)}` : ''}`);
+      }
+      parts.push(`<strong>Prize placings:</strong> ${escapeHtml(String(event.prizePlacings || '—'))}`);
+      summary.innerHTML = parts.join(' &nbsp; ');
     });
   }
 
@@ -82,6 +111,8 @@
         setReviewValue('Start time', humanEventTime(state.booking.startTime));
         setReviewValue('Balance', 'Due within 7 days after completion of the event');
         setReviewValue('Accepted at', humanDateTimeLong(state.booking.acceptedAt));
+        ensureTermsVersionReview();
+        tidyReviewEventSummaries();
         updateSubmitAvailability();
       };
     }
@@ -126,7 +157,7 @@
       return html
         .replaceAll('#c1121f', BRAND_RED)
         .replaceAll('Due within 14 days after event', 'Due within 7 days after completion of the event')
-        .replace(/Hire Terms &amp; Conditions version \d+/, `Hire Terms &amp; Conditions version ${CURRENT_TERMS_VERSION}`)
+        .replace(/Hire Terms &amp; Conditions version [^.]+(?=\. Accepted by)/, `Hire Terms &amp; Conditions version ${CURRENT_TERMS_VERSION}`)
         .replace('</head>', `${printStyles}</head>`)
         .replace('<body>', `<body>${logoBlock}`)
         .replace('<h1>Waimarino Shears Incorporated — Speed Shear Hire &amp; Booking Pack</h1>', '');
@@ -274,8 +305,8 @@
     const events = pack.competitionSetup?.events || {};
     const parts = Object.entries(events).map(([name, event]) => {
       const rounds = (event.rounds || []).map(round => `${round.name}: ${round.sheepPerShearer} sheep per shearer${round.qualifiers == null ? '' : `, ${round.qualifiers} qualify`}`).join(' | ');
-      const clean = event.cleanShear ? `Yes${event.cleanShearTimeLimit ? ` (${event.cleanShearTimeLimit})` : ''}` : 'No';
-      return `${name} — Clean shear: ${clean}; Prize placings: ${event.prizePlacings}; ${rounds}`;
+      const clean = event.cleanShear ? `Clean shear: Yes${event.cleanShearTimeLimit ? ` (${event.cleanShearTimeLimit})` : ''}; ` : '';
+      return `${name} — ${clean}Prize placings: ${event.prizePlacings}; ${rounds}`;
     });
     return parts.length ? parts.join('\n') : 'No grades or events selected.';
   }
@@ -297,9 +328,9 @@
       `Board judge: ${judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No'}`,
       '', 'Programme of Events:', eventSummary(pack), '',
       `Terms accepted: ${pack.booking.termsAccepted ? 'Yes' : 'No'}`,
+      `Terms version: ${CURRENT_TERMS_VERSION}`,
       `Accepted by: ${pack.booking.acceptedBy || '—'}`,
-      `Accepted at: ${humanDateTimeLong(pack.booking.acceptedAt)}`,
-      `Booking ID: ${pack.identity?.bookingId || '—'}`
+      `Accepted at: ${humanDateTimeLong(pack.booking.acceptedAt)}`
     ].join('\n');
   }
 
@@ -356,7 +387,7 @@
       state.booking.status = 'submitted';
       try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
       if (typeof buildReview === 'function') buildReview();
-      setSubmissionStatus('success', '<strong>Booking request sent.</strong><br>A confirmation email with the Booking Pack PDF should arrive shortly. Waimarino Shears will review the request and send the $300 deposit invoice. The booking is not confirmed until the deposit has been paid.<br><br><strong>Need to make a change?</strong> Contact Waimarino Shears directly. Please do not submit another booking request.');
+      setSubmissionStatus('success', '<strong>Booking request sent.</strong><br>A confirmation email with the Booking Pack PDF and Booking Reference should arrive shortly. Waimarino Shears will review the request and send the $300 deposit invoice. The booking is not confirmed until the deposit has been paid.<br><br><strong>Need to make a change?</strong> Contact Waimarino Shears directly and quote the Booking Reference in your confirmation email. Please do not submit another booking request.');
     } catch (error) {
       console.error('Booking submission failed:', error);
       setSubmissionStatus('error', '<strong>We could not send the booking online.</strong><br>Please use the “Email Booking Request” option below instead.');
