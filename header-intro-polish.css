@@ -33,10 +33,3 @@
 .hire-intro-signoff {
   margin-top: 16px !important;
 }
-
-@media (max-width: 850px) {
-  .header-brand-name {
-    margin-bottom: 14px;
-    text-align: left;
-  }
-}
