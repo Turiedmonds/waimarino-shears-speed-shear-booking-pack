@@ -10,6 +10,11 @@
   padding: 5px;
 }
 
+/* Hide the extra helper text beside Save Draft. */
+.draft-auto-save-note {
+  display: none !important;
+}
+
 /* Programme of Events help: compact info icon beside the heading. */
 .rounds-heading {
   display: grid;
