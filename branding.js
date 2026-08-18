@@ -108,6 +108,48 @@
     };
   }
 
+  function installDraftHelp() {
+    const saveDraftButton = document.getElementById('saveDraftBtn');
+    if (!saveDraftButton) return;
+
+    document.getElementById('draftAutoSaveNote')?.remove();
+
+    let helpButton = document.getElementById('draftHelpBtn');
+    if (!helpButton) {
+      helpButton = document.createElement('button');
+      helpButton.id = 'draftHelpBtn';
+      helpButton.className = 'draft-help-btn no-print';
+      helpButton.type = 'button';
+      helpButton.setAttribute('aria-label', 'How Save Draft works');
+      helpButton.setAttribute('title', 'How Save Draft works');
+      saveDraftButton.insertAdjacentElement('afterend', helpButton);
+    }
+
+    let dialog = document.getElementById('draftHelpDialog');
+    if (!dialog) {
+      dialog = document.createElement('dialog');
+      dialog.id = 'draftHelpDialog';
+      dialog.innerHTML = `
+        <div class="draft-help-dialog-body">
+          <div class="dialog-heading">
+            <h3>How Save Draft works</h3>
+            <button id="closeDraftHelpBtn" class="icon-button" type="button" aria-label="Close">×</button>
+          </div>
+          <p>Your draft is saved in <strong>this browser on this device</strong>. It is not saved to Google Drive and it does not create a file in your Downloads folder.</p>
+          <p><strong>To continue later:</strong> reopen this Waimarino Shears booking page using the same browser and the same device. Your saved booking details will load automatically so you can continue.</p>
+          <p>Your progress also saves automatically while you fill in the Booking Details and Competition Configuration pages.</p>
+          <p class="help-text"><strong>Please note:</strong> a draft will not automatically appear on another phone, computer or browser. Clearing this browser's website data may remove the saved draft. Once a booking has been submitted, the editable draft is cleared.</p>
+        </div>`;
+      document.body.appendChild(dialog);
+    }
+
+    helpButton.addEventListener('click', () => dialog.showModal());
+    dialog.querySelector('#closeDraftHelpBtn')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => {
+      if (event.target === dialog) dialog.close();
+    });
+  }
+
   function patchBookingPage() {
     const fileInput = document.getElementById('bookingFileInput');
     if (fileInput) {
@@ -119,13 +161,6 @@
     if (saveDraftButton) {
       saveDraftButton.textContent = 'Save Draft';
       saveDraftButton.title = 'Save your progress on this device.';
-      if (!document.getElementById('draftAutoSaveNote')) {
-        const note = document.createElement('span');
-        note.id = 'draftAutoSaveNote';
-        note.className = 'draft-auto-save-note';
-        note.textContent = 'Draft saves automatically on this device.';
-        saveDraftButton.parentNode?.insertBefore(note, saveDraftButton);
-      }
     }
 
     const balanceRow = [...document.querySelectorAll('.cost-box dl div')].find(row => row.querySelector('dt')?.textContent.trim() === 'Balance');
@@ -216,6 +251,7 @@
   }
 
   patchBookingPage();
+  installDraftHelp();
   patchHelpDialog();
   polishProgrammeLanguage();
 
@@ -377,7 +413,12 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    .draft-auto-save-note{font-size:.78rem;color:rgba(255,255,255,.72);align-self:center;max-width:150px;line-height:1.25}
+    .draft-help-btn{width:30px;height:30px;min-width:30px;padding:0;border:2px solid #c1121f;border-radius:50%;background:#fff;color:#c1121f;display:inline-grid;place-items:center;align-self:center;cursor:pointer}
+    .draft-help-btn::before{content:'i';font-size:18px;line-height:1;font-weight:900;font-family:Georgia,'Times New Roman',serif;transform:translateY(-1px)}
+    .draft-help-btn:hover,.draft-help-btn:focus-visible{background:#c1121f;color:#fff;outline:none}
+    #draftHelpDialog{border:0;border-radius:14px;padding:0;width:min(620px,calc(100% - 32px));box-shadow:0 20px 70px rgba(0,0,0,.28)}
+    #draftHelpDialog::backdrop{background:rgba(0,0,0,.62)}
+    .draft-help-dialog-body{padding:22px}.draft-help-dialog-body h3{margin:0}.draft-help-dialog-body p{color:#333}
     .cost-box{grid-template-columns:minmax(255px,auto) 1fr}.cost-box h3{white-space:nowrap;font-size:clamp(1.55rem,3vw,2rem);letter-spacing:.01em;margin-top:3px;margin-bottom:0}
     .programme-actions{display:flex;gap:9px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
     .next-steps-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--brand-2);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-top:18px}.next-steps-card h3{margin:0 0 14px}.next-steps-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.next-steps-list>div{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)}.next-steps-list span{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:var(--brand-2);color:#fff;font-weight:800}.next-steps-list p{margin:0;color:#333}
@@ -385,7 +426,7 @@
     .secondary-booking-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.action-tile{text-align:left;border:1px solid #bbb;border-radius:12px;background:#fff;padding:16px;color:#111}.action-tile:hover:not(:disabled){border-color:var(--brand-2);background:#fff7f7}.action-tile strong{display:block;color:var(--brand-2);font-size:1rem}.action-tile span{display:block;margin-top:5px;color:var(--muted);font-size:.92rem}.action-tile:disabled{opacity:.5;cursor:not-allowed}
     .submitted-change-note{margin:2px 0 0;padding:12px 14px;border-left:4px solid var(--brand-2);background:#fff7f7;border-radius:8px;color:#4c1519}.submission-status{padding:14px 16px;border-radius:10px}.submission-status.success{background:#f1faf3;border:1px solid #8ec89b;color:#1e5a2d}.submission-status.error{background:#fff3f3;border:1px solid #db8e94;color:#7f1119}
     @media(max-width:900px){.next-steps-list{grid-template-columns:1fr}.secondary-booking-actions{grid-template-columns:1fr 1fr}.primary-submit-card{align-items:flex-start;flex-direction:column}.cost-box{grid-template-columns:1fr}.programme-actions{justify-content:flex-start}}
-    @media(max-width:540px){.secondary-booking-actions{grid-template-columns:1fr}.submit-booking-button{width:100%;white-space:normal}.draft-auto-save-note{max-width:none}}
+    @media(max-width:540px){.secondary-booking-actions{grid-template-columns:1fr}.submit-booking-button{width:100%;white-space:normal}.draft-help-btn{width:28px;height:28px;min-width:28px}}
   `;
   document.head.appendChild(style);
 
