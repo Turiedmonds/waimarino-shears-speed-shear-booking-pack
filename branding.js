@@ -1,8 +1,8 @@
 (() => {
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
   const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypCyJhLAup1GugHAqIhPZnxKRFZ1Eoaq372Msmv9PL19cu8dvSI2NnSaj_ZajTsdf2YA/exec';
-  const CURRENT_TERMS_VERSION = 'August 2026';
-  const CURRENT_APP_VERSION = '1.4.0';
+  const CURRENT_TERMS_VERSION = '19 August 2026';
+  const CURRENT_APP_VERSION = '1.5.0';
   const BRAND_RED = '#EB1D27';
   const logoUrl = new URL('assets/Waimarino%20Shears%20Logo.png', window.location.href).href;
 
@@ -119,7 +119,9 @@
 
     if (typeof showToast === 'function') {
       const originalShowToast = showToast;
-      showToast = message => originalShowToast(String(message).replaceAll('Progression', 'Programme').replaceAll('progression', 'programme'));
+      showToast = message => originalShowToast(String(message)
+        .replaceAll('Progression', 'Round format')
+        .replaceAll('progression', 'round format'));
     }
   }
 
@@ -174,6 +176,63 @@
     };
   }
 
+  function insertTermBeforeNextHeading(heading, id, html) {
+    if (!heading || document.getElementById(id)) return;
+    let nextHeading = heading.nextElementSibling;
+    while (nextHeading && nextHeading.tagName !== 'H4') nextHeading = nextHeading.nextElementSibling;
+    const term = document.createElement('p');
+    term.id = id;
+    term.innerHTML = html;
+    heading.parentElement.insertBefore(term, nextHeading || null);
+  }
+
+  function patchCompetitionOperationTerms(termsContent) {
+    const heading = [...termsContent.querySelectorAll('h4')]
+      .find(h => h.textContent.trim() === 'Competition operation');
+    if (!heading) return;
+
+    let firstParagraph = heading.nextElementSibling;
+    if (!firstParagraph || firstParagraph.tagName !== 'P') {
+      firstParagraph = document.createElement('p');
+      heading.insertAdjacentElement('afterend', firstParagraph);
+    }
+    firstParagraph.innerHTML = 'The organiser remains responsible for the running and administration of the competition, including judging, sheep handling, competitor entries, entry fees, sign-in, disputes, protests and competition rulings. <strong>Waimarino Shears personnel operating the timing system do not make, approve, verify or justify competition rulings.</strong>';
+
+    let disputeTerm = document.getElementById('disputesAndRulingsTerm');
+    if (!disputeTerm) {
+      disputeTerm = document.createElement('p');
+      disputeTerm.id = 'disputesAndRulingsTerm';
+      firstParagraph.insertAdjacentElement('afterend', disputeTerm);
+    }
+    disputeTerm.innerHTML = '<strong>Disputes, rulings and timing-system records:</strong> Any dispute, protest or question about a competition ruling must first be taken to the organiser and/or competition judges. If timing-system data or records are relevant, the organiser may then ask Waimarino Shears personnel to check or provide the recorded timing-system information. Waimarino Shears’ role is limited to the system data and technical record; the organiser and judges remain responsible for determining the outcome of the dispute or ruling.';
+
+    let accuracyTerm = document.getElementById('organiserInformationCheckTerm');
+    if (!accuracyTerm) {
+      accuracyTerm = document.createElement('p');
+      accuracyTerm.id = 'organiserInformationCheckTerm';
+      disputeTerm.insertAdjacentElement('afterend', accuracyTerm);
+    }
+    accuracyTerm.innerHTML = '<strong>Accuracy of competition information:</strong> The organiser is responsible for checking the accuracy and completeness of the booking details, Grade / Event Round Format information and confirmed Programme of Events before submission. Waimarino Shears Incorporated will configure and operate the timing system using the information supplied by the organiser and may rely on that information unless a change is notified directly.';
+  }
+
+  function patchPrivacyTerms(termsContent) {
+    let heading = document.getElementById('privacyDataUseHeading');
+    if (!heading) {
+      heading = document.createElement('h4');
+      heading.id = 'privacyDataUseHeading';
+      heading.textContent = 'Privacy and use of information';
+      termsContent.appendChild(heading);
+    }
+
+    let paragraph = document.getElementById('privacyDataUseTerm');
+    if (!paragraph) {
+      paragraph = document.createElement('p');
+      paragraph.id = 'privacyDataUseTerm';
+      heading.insertAdjacentElement('afterend', paragraph);
+    }
+    paragraph.innerHTML = `Personal information and competition information supplied through this booking pack is collected by Waimarino Shears Incorporated for purposes connected with the booking, communication with the organiser, event preparation, timing-system setup and operation, competition records, and technical or data queries relating to the event. Information will be used or disclosed only where reasonably necessary for those purposes, a directly related purpose, or where required or permitted by law. Waimarino Shears Incorporated will take reasonable safeguards to protect the information against loss, misuse and unauthorised access or disclosure, and will retain personal information only for as long as reasonably required for the purposes for which it may lawfully be used. Requests to access or correct personal information can be made by emailing <a href="mailto:${SUBMISSION_EMAIL}">${SUBMISSION_EMAIL}</a>.`;
+  }
+
   function patchBookingPage() {
     const fileInput = document.getElementById('bookingFileInput');
     if (fileInput) {
@@ -199,14 +258,21 @@
     });
 
     const equipmentHeading = [...termsContent.querySelectorAll('h4')].find(h => h.textContent.trim() === 'Equipment and operating conditions');
-    if (equipmentHeading && !document.getElementById('systemFailureTerm')) {
-      let nextHeading = equipmentHeading.nextElementSibling;
-      while (nextHeading && nextHeading.tagName !== 'H4') nextHeading = nextHeading.nextElementSibling;
-      const term = document.createElement('p');
-      term.id = 'systemFailureTerm';
-      term.innerHTML = '<strong>System failure and manual backup:</strong> If the electronic timing, judging or display system becomes unavailable or unreliable because of equipment, power or another technical failure, Waimarino Shears Incorporated may continue the competition using manual backup procedures. This may include stopwatches, pen-and-paper records and manual entry of times, points, results or draws. The organiser accepts that these manual procedures may be used for the remainder of the competition where required.';
-      termsContent.insertBefore(term, nextHeading || null);
+    if (equipmentHeading) {
+      insertTermBeforeNextHeading(
+        equipmentHeading,
+        'systemAvailabilityTerm',
+        '<strong>Electronic system availability:</strong> Waimarino Shears Incorporated will take reasonable care in setting up and operating the timing, judging and display equipment, but uninterrupted electronic operation cannot be guaranteed. Equipment, power, connectivity or other technical issues may affect electronic operation.'
+      );
+      insertTermBeforeNextHeading(
+        equipmentHeading,
+        'systemFailureTerm',
+        '<strong>System failure and manual backup:</strong> If the electronic timing, judging or display system becomes unavailable or unreliable because of equipment, power or another technical failure, Waimarino Shears Incorporated may continue the competition using manual backup procedures. This may include stopwatches, pen-and-paper records and manual entry of times, points, results or draws. The organiser accepts that these manual procedures may be used for the remainder of the competition where required.'
+      );
     }
+
+    patchCompetitionOperationTerms(termsContent);
+    patchPrivacyTerms(termsContent);
   }
 
   function patchHelpDialog() {
@@ -214,21 +280,65 @@
     const body = dialog?.querySelector('.dialog-body');
     if (!dialog || !body) return;
     body.innerHTML = `
-      <div class="dialog-heading"><h3>Programme of Events — Help</h3><button id="closeProgressionHelpBtn" class="icon-button" type="button" aria-label="Close">×</button></div>
-      <p>This section tells us the rounds that will be run for each grade or event.</p>
-      <p><strong>Heats are always first and Final is always last.</strong> If your competition has extra rounds, add them between the Heats and Final.</p>
+      <div class="dialog-heading"><h3>Grade / Event Round Format — Help</h3><button id="closeProgressionHelpBtn" class="icon-button" type="button" aria-label="Close">×</button></div>
+      <p>This section tells us which rounds will be run within this grade or event and how competitors progress through those rounds.</p>
+      <p><strong>Heats are always first and Final is always last.</strong> If the grade or event has extra rounds, add them between the Heats and Final.</p>
       <div class="example-flow"><span>Heats<br><small>1 sheep • 12 qualify</small></span><b>→</b><span>Top 12<br><small>1 sheep • 6 qualify</small></span><b>→</b><span>Semi-final<br><small>1 sheep • 2 qualify</small></span><b>→</b><span>Final<br><small>2 sheep</small></span></div>
-      <p class="help-text"><strong>Adding another round:</strong> choose “Add Another Round”, then select the round name or use “Top X / Other” for names such as Top 12 or Top 8.</p>
-      <p class="help-text"><strong>Using the same programme:</strong> if another grade or event uses the same rounds, choose it under “Use the same programme as…” instead of entering every round again. After copying, check the sheep per shearer and number qualifying because these can differ between grades.</p>`;
+      <p class="help-text"><strong>Adding another round:</strong> choose “Add Another Round”, then select Quarter-final or Semi-final, or choose “Custom name” and enter the round name used by your competition.</p>
+      <p class="help-text"><strong>Using the same round format:</strong> if another grade or event uses the same rounds, choose it under “Use the same round format as…” instead of entering every round again. After copying, check the sheep per shearer and number qualifying because these can differ between grades or events.</p>`;
     body.querySelector('#closeProgressionHelpBtn')?.addEventListener('click', () => dialog.close());
   }
 
-  function polishProgrammeCard(card) {
+  function polishRoundSelect(select) {
+    if (!select) return;
+    if (!select.querySelector('option[value=""]')) {
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Select a round';
+      select.insertBefore(placeholder, select.firstElementChild || null);
+    }
+    const custom = select.querySelector('option[value="custom"]');
+    if (custom) custom.textContent = 'Custom name';
+  }
+
+  function polishRoundControls(root = document) {
+    root.querySelectorAll?.('.round-name-select').forEach(polishRoundSelect);
+    const templateSelect = document.getElementById('roundTemplate')?.content?.querySelector('.round-name-select');
+    polishRoundSelect(templateSelect);
+  }
+
+  function installBlankNewRoundBehaviour() {
+    if (typeof addRoundRow !== 'function' || addRoundRow.__blankNewRoundPatched) return;
+    const originalAddRoundRow = addRoundRow;
+    const patched = function patchedAddRoundRow(roundList, round, options = {}) {
+      const isNewRound = Boolean(options.insertBeforeFinal && !options.lockedName);
+      originalAddRoundRow(roundList, round, options);
+      polishRoundControls(roundList);
+      if (!isNewRound) return;
+
+      const finalRow = roundList.querySelector('[data-anchor="final"]');
+      const row = finalRow?.previousElementSibling || roundList.lastElementChild;
+      if (!row?.classList.contains('round-row')) return;
+      const select = row.querySelector('.round-name-select');
+      const customInput = row.querySelector('.custom-round-name');
+      const qualifiersWrap = row.querySelector('.qualifiers-wrap');
+      if (select) select.value = '';
+      if (customInput) {
+        customInput.value = '';
+        customInput.classList.add('hidden');
+      }
+      qualifiersWrap?.classList.remove('hidden');
+    };
+    patched.__blankNewRoundPatched = true;
+    addRoundRow = patched;
+  }
+
+  function polishRoundFormatCard(card) {
     if (!card) return;
     const heading = card.querySelector('.rounds-heading');
     if (heading) {
       const title = heading.querySelector('h4');
-      if (title && title.textContent !== 'Programme of Events') title.textContent = 'Programme of Events';
+      if (title && title.textContent !== 'Grade / Event Round Format') title.textContent = 'Grade / Event Round Format';
       heading.querySelector('p')?.remove();
 
       const addButton = heading.querySelector('.add-round-btn');
@@ -241,8 +351,8 @@
         const help = document.createElement('button');
         help.type = 'button';
         help.className = 'programme-help-btn';
-        help.setAttribute('aria-label', 'Help with Programme of Events');
-        help.setAttribute('title', 'Help with Programme of Events');
+        help.setAttribute('aria-label', 'Help with Grade / Event Round Format');
+        help.setAttribute('title', 'Help with Grade / Event Round Format');
         actions.appendChild(help);
         if (addButton) actions.appendChild(addButton);
         heading.appendChild(actions);
@@ -252,38 +362,44 @@
     }
 
     const copyBox = card.querySelector('.copy-progression');
-    if (!copyBox) return;
-    const label = copyBox.querySelector(':scope > label');
-    if (label && label.textContent !== 'Use the same programme as…') label.textContent = 'Use the same programme as…';
-    const select = copyBox.querySelector('.copy-source-select');
-    const placeholder = select?.querySelector('option[value=""]');
-    if (placeholder && placeholder.textContent !== 'Choose a grade / event…') placeholder.textContent = 'Choose a grade / event…';
-    select?.setAttribute('aria-label', 'Use the same programme as another grade or event');
-    const copyButton = copyBox.querySelector('.copy-progression-btn');
-    if (copyButton && copyButton.textContent !== 'Use Programme') copyButton.textContent = 'Use Programme';
-    const warning = copyBox.querySelector('.copy-warning');
-    if (warning?.textContent.includes('Progression copied from')) warning.textContent = warning.textContent.replace('Progression copied from', 'Programme copied from');
+    if (copyBox) {
+      const label = copyBox.querySelector(':scope > label');
+      if (label && label.textContent !== 'Use the same round format as…') label.textContent = 'Use the same round format as…';
+      const select = copyBox.querySelector('.copy-source-select');
+      const placeholder = select?.querySelector('option[value=""]');
+      if (placeholder && placeholder.textContent !== 'Choose a grade / event…') placeholder.textContent = 'Choose a grade / event…';
+      select?.setAttribute('aria-label', 'Use the same round format as another grade or event');
+      const copyButton = copyBox.querySelector('.copy-progression-btn');
+      if (copyButton && copyButton.textContent !== 'Use Round Format') copyButton.textContent = 'Use Round Format';
+      const warning = copyBox.querySelector('.copy-warning');
+      if (warning?.textContent.includes('Progression copied from')) warning.textContent = warning.textContent.replace('Progression copied from', 'Round format copied from');
+      if (warning?.textContent.includes('Programme copied from')) warning.textContent = warning.textContent.replace('Programme copied from', 'Round format copied from');
+    }
+
+    polishRoundControls(card);
   }
 
-  function polishProgrammeLanguage() {
+  function polishRoundFormatLanguage() {
     const gradesCard = document.getElementById('gradeChoices')?.closest('.card');
     gradesCard?.querySelector('#progressionHelpBtn')?.remove();
     const description = gradesCard?.querySelector('.card-heading-row p');
-    if (description && description.textContent !== 'Select everything being run. Each selection will create its own programme section below.') {
-      description.textContent = 'Select everything being run. Each selection will create its own programme section below.';
+    if (description && description.textContent !== 'Select everything being run. Each selection will create its own round format section below.') {
+      description.textContent = 'Select everything being run. Each selection will create its own round format section below.';
     }
-    polishProgrammeCard(document.getElementById('eventConfigTemplate')?.content?.querySelector('.event-card'));
-    document.querySelectorAll('#eventConfigs .event-card').forEach(polishProgrammeCard);
+    polishRoundFormatCard(document.getElementById('eventConfigTemplate')?.content?.querySelector('.event-card'));
+    document.querySelectorAll('#eventConfigs .event-card').forEach(polishRoundFormatCard);
+    polishRoundControls();
   }
 
   patchBookingPage();
   patchHelpDialog();
-  polishProgrammeLanguage();
+  polishRoundFormatLanguage();
+  installBlankNewRoundBehaviour();
 
   document.addEventListener('click', event => {
     if (event.target.closest('.programme-help-btn')) document.getElementById('progressionHelpDialog')?.showModal();
     const copyButton = event.target.closest('.copy-progression-btn');
-    if (copyButton) setTimeout(() => polishProgrammeCard(copyButton.closest('.event-card')), 0);
+    if (copyButton) setTimeout(() => polishRoundFormatCard(copyButton.closest('.event-card')), 0);
   });
 
   const eventConfigs = document.getElementById('eventConfigs');
@@ -297,7 +413,7 @@
           node.querySelectorAll?.('.event-card').forEach(card => cards.add(card));
         });
       });
-      cards.forEach(polishProgrammeCard);
+      cards.forEach(polishRoundFormatCard);
     }).observe(eventConfigs, { childList: true });
   }
 
@@ -309,6 +425,13 @@
       return `${name} — ${clean}Prize placings: ${event.prizePlacings}; ${rounds}`;
     });
     return parts.length ? parts.join('\n') : 'No grades or events selected.';
+  }
+
+  function programmeSummary(pack) {
+    const program = Array.isArray(pack.competitionSetup?.program) ? pack.competitionSetup.program : [];
+    return program.length
+      ? program.map((item, index) => `${index + 1}. ${item.grade || '—'} — ${item.round || '—'}`).join('\n')
+      : 'No confirmed programme supplied.';
   }
 
   function bookingSummary(pack) {
@@ -326,7 +449,8 @@
       `Digital entries: ${entries.digitalEntries == null ? '—' : entries.digitalEntries ? 'Yes' : 'No'}`,
       `Pen judges: ${judging.penJudges ?? 0}`,
       `Board judge: ${judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No'}`,
-      '', 'Programme of Events:', eventSummary(pack), '',
+      '', 'Grade / Event Round Format:', eventSummary(pack), '',
+      'Programme of Events:', programmeSummary(pack), '',
       `Terms accepted: ${pack.booking.termsAccepted ? 'Yes' : 'No'}`,
       `Terms version: ${CURRENT_TERMS_VERSION}`,
       `Accepted by: ${pack.booking.acceptedBy || '—'}`,
@@ -402,7 +526,7 @@
     }
     const warnings = typeof validateForReview === 'function' ? validateForReview() : [];
     if (warnings.length) {
-      return setSubmissionStatus('error', '<strong>Please check the booking before emailing it.</strong><br>Complete the items listed in the review, including accepting the Hire Terms &amp; Conditions.');
+      return setSubmissionStatus('error', '<strong>Please check the booking before emailing it.</strong><br>Complete the items listed in the review, including accepting the Hire Terms & Conditions.');
     }
 
     const pack = buildPackage(true);

@@ -143,7 +143,7 @@
         </div>
         <dl>
           <div><dt>Deposit</dt><dd>NZ$300 — due no later than 14 days before the event</dd></div>
-          <div><dt>Balance</dt><dd>Payable within 14 days after completion of the event</dd></div>
+          <div><dt>Balance</dt><dd>Payable within 7 days after completion of the event</dd></div>
           <div><dt>Travel</dt><dd>Included</dd></div>
           <div><dt>Accommodation</dt><dd>Additional if required</dd></div>
         </dl>
@@ -177,7 +177,7 @@
         <summary>Read Hire Terms &amp; Conditions</summary>
         <div class="terms-content">
           <h4>Hire fee and payment</h4>
-          <p>The standard hire fee is NZ$750 plus GST. Travel to and from the event is included. A NZ$300 deposit is required no later than 14 days before the event. The remaining balance is payable within 14 days following completion of the event. Separate invoices will be issued for the deposit and remaining balance.</p>
+          <p>The standard hire fee is NZ$750 plus GST. Travel to and from the event is included. A NZ$300 deposit is required no later than 14 days before the event. The remaining balance is payable within 7 days following completion of the event. Separate invoices will be issued for the deposit and remaining balance.</p>
           <p>If the deposit has not been received by the due date following reasonable reminders, Waimarino Shears Incorporated may treat the booking as cancelled.</p>
           <h4>Accommodation</h4>
           <p>Accommodation is not included in the standard hire fee. Where accommodation is reasonably required because of travel, event timing or a day-before setup, Waimarino Shears Incorporated will arrange the accommodation and charge the organiser the actual accommodation cost in addition to the hire fee. Where reasonably possible, the organiser will be advised of the cost before the accommodation is booked.</p>
@@ -191,8 +191,14 @@
           <h4>Equipment and operating conditions</h4>
           <p>The organiser must take reasonable care to protect equipment supplied by Waimarino Shears Incorporated. The organiser may be responsible for reasonable repair or replacement costs where equipment is damaged through negligence, misuse or deliberate actions by the organiser, its personnel, competitors, or others for whom the organiser is responsible.</p>
           <p>Waimarino Shears Incorporated may delay, stop or decline setup or operation where conditions present an unreasonable safety risk to people or equipment.</p>
+          <p id="systemAvailabilityTerm"><strong>Electronic system availability:</strong> Waimarino Shears Incorporated will take reasonable care in setting up and operating the timing, judging and display equipment, but uninterrupted electronic operation cannot be guaranteed. Equipment, power, connectivity or other technical issues may affect electronic operation.</p>
+          <p id="systemFailureTerm"><strong>System failure and manual backup:</strong> If the electronic timing, judging or display system becomes unavailable or unreliable because of equipment, power or another technical failure, Waimarino Shears Incorporated may continue the competition using manual backup procedures. This may include stopwatches, pen-and-paper records and manual entry of times, points, results or draws. The organiser accepts that these manual procedures may be used for the remainder of the competition where required.</p>
           <h4>Competition operation</h4>
-          <p>The organiser remains responsible for the running and administration of the competition, including judging, sheep handling, competitor entries, entry fees and sign-in. Waimarino Shears Incorporated is responsible for setting up and operating its timing system and supplied equipment using the competition information provided by the organiser.</p>
+          <p>The organiser remains responsible for the running and administration of the competition, including judging, sheep handling, competitor entries, entry fees, sign-in, disputes, protests and competition rulings. <strong>Waimarino Shears personnel operating the timing system do not make, approve, verify or justify competition rulings.</strong></p>
+          <p id="disputesAndRulingsTerm"><strong>Disputes, rulings and timing-system records:</strong> Any dispute, protest or question about a competition ruling must first be taken to the organiser and/or competition judges. If timing-system data or records are relevant, the organiser may then ask Waimarino Shears personnel to check or provide the recorded timing-system information. Waimarino Shears’ role is limited to the system data and technical record; the organiser and judges remain responsible for determining the outcome of the dispute or ruling.</p>
+          <p id="organiserInformationCheckTerm"><strong>Accuracy of competition information:</strong> The organiser is responsible for checking the accuracy and completeness of the booking details, Grade / Event Round Format information and confirmed Programme of Events before submission. Waimarino Shears Incorporated will configure and operate the timing system using the information supplied by the organiser and may rely on that information unless a change is notified directly.</p>
+          <h4 id="privacyDataUseHeading">Privacy and use of information</h4>
+          <p id="privacyDataUseTerm">Personal information and competition information supplied through this booking pack is collected by Waimarino Shears Incorporated for purposes connected with the booking, communication with the organiser, event preparation, timing-system setup and operation, competition records, and technical or data queries relating to the event. Information will be used or disclosed only where reasonably necessary for those purposes, a directly related purpose, or where required or permitted by law. Waimarino Shears Incorporated will take reasonable safeguards to protect the information against loss, misuse and unauthorised access or disclosure, and will retain personal information only for as long as reasonably required for the purposes for which it may lawfully be used. Requests to access or correct personal information can be made by emailing <a href="mailto:Waimarinoshears@gmail.com">Waimarinoshears@gmail.com</a>.</p>
         </div>
       </details>
 
@@ -225,9 +231,9 @@
         <div class="card-heading-row">
           <div>
             <h3>Grades &amp; events</h3>
-            <p>Select everything being run. Each selection will create its own progression section below.</p>
+            <p>Select everything being run. Each selection will create its own round format section below.</p>
           </div>
-          <button id="progressionHelpBtn" class="text-button no-print" type="button">How does progression work?</button>
+          <button id="progressionHelpBtn" class="text-button no-print" type="button">Round format help</button>
         </div>
         <div id="gradeChoices" class="choice-grid">
           <label><input type="checkbox" value="Novice"> Novice</label>
@@ -293,10 +299,12 @@
 
   <dialog id="progressionHelpDialog">
     <div class="dialog-body">
-      <div class="dialog-heading"><h3>Competition progression example</h3><button id="closeProgressionHelpBtn" class="icon-button" type="button" aria-label="Close">×</button></div>
-      <p>Heats are always the first round and Final is always the last. Add any extra rounds between them. For example:</p>
+      <div class="dialog-heading"><h3>Grade / Event Round Format — Help</h3><button id="closeProgressionHelpBtn" class="icon-button" type="button" aria-label="Close">×</button></div>
+      <p>This section tells us which rounds will be run within this grade or event and how competitors progress through those rounds.</p>
+      <p><strong>Heats are always first and Final is always last.</strong> If the grade or event has extra rounds, add them between the Heats and Final.</p>
       <div class="example-flow"><span>Heats<br><small>1 sheep • 12 qualify</small></span><b>→</b><span>Top 12<br><small>1 sheep • 6 qualify</small></span><b>→</b><span>Semi-final<br><small>1 sheep • 2 qualify</small></span><b>→</b><span>Final<br><small>2 sheep</small></span></div>
-      <p class="help-text">Use “Top X / Other” for round names such as Top 12, Top 8 or another competition-specific round.</p>
+      <p class="help-text"><strong>Adding another round:</strong> choose “Add Another Round”, then select Quarter-final or Semi-final, or choose “Custom name” and enter the round name used by your competition.</p>
+      <p class="help-text"><strong>Using the same round format:</strong> if another grade or event uses the same rounds, choose it under “Use the same round format as…” instead of entering every round again. After copying, check the sheep per shearer and number qualifying because these can differ between grades or events.</p>
     </div>
   </dialog>
 
@@ -309,14 +317,14 @@
         <div class="field"><label>Number of prize placings</label><input class="prize-placings-input" type="number" min="1" step="1" value="3"></div>
       </div>
       <div class="rounds-heading">
-        <div><h4>Competition progression</h4><p>Heats and Final are fixed. Add any rounds that happen between them.</p></div>
-        <button class="button secondary small add-round-btn no-print" type="button">Add round</button>
+        <div><h4>Grade / Event Round Format</h4><p>Heats and Final are fixed. Add any rounds that happen between them.</p></div>
+        <button class="button secondary small add-round-btn no-print" type="button">Add Another Round</button>
       </div>
       <div class="copy-progression no-print">
-        <label>Same progression as another grade/event?</label>
+        <label>Use the same round format as…</label>
         <div class="copy-progression-controls">
-          <select class="copy-source-select" aria-label="Copy progression from another grade or event"><option value="">Copy progression from…</option></select>
-          <button class="button secondary small copy-progression-btn" type="button">Copy</button>
+          <select class="copy-source-select" aria-label="Use the same round format as another grade or event"><option value="">Choose a grade / event…</option></select>
+          <button class="button secondary small copy-progression-btn" type="button">Use Round Format</button>
         </div>
         <p class="copy-warning hidden"></p>
       </div>
@@ -327,7 +335,7 @@
   <template id="roundTemplate">
     <div class="round-row">
       <div class="round-number" aria-hidden="true"></div>
-      <div class="field"><label>Round</label><select class="round-name-select"><option value="Heats">Heats</option><option value="Quarter-final">Quarter-final</option><option value="Semi-final">Semi-final</option><option value="Final">Final</option><option value="custom">Top X / Other</option></select><input class="custom-round-name hidden" type="text" placeholder="e.g. Top 12"></div>
+      <div class="field"><label>Round</label><select class="round-name-select"><option value="">Select a round</option><option value="Heats">Heats</option><option value="Quarter-final">Quarter-final</option><option value="Semi-final">Semi-final</option><option value="Final">Final</option><option value="custom">Custom name</option></select><input class="custom-round-name hidden" type="text" placeholder="Enter the round name"></div>
       <div class="field"><label>Sheep per shearer in this round</label><input class="sheep-per-shearer" type="number" min="1" step="1" value="1"></div>
       <div class="field qualifiers-wrap"><label>Number qualifying to next round</label><input class="qualifiers-input" type="number" min="1" step="1"></div>
       <button class="icon-button remove-round-btn no-print" type="button" aria-label="Remove round">×</button>
@@ -335,6 +343,6 @@
   </template>
 
   <script src="app.js"></script>
-  <script src="branding.js?v=1.4.0"></script>
+  <script src="branding.js?v=1.5.0"></script>
 </body>
 </html>
