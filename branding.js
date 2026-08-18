@@ -223,13 +223,13 @@
     const copyBox = card.querySelector('.copy-progression');
     if (!copyBox) return;
     const label = copyBox.querySelector(':scope > label');
-    if (label) label.textContent = 'Use the same programme as…';
+    if (label && label.textContent !== 'Use the same programme as…') label.textContent = 'Use the same programme as…';
     const select = copyBox.querySelector('.copy-source-select');
     const placeholder = select?.querySelector('option[value=""]');
-    if (placeholder) placeholder.textContent = 'Choose a grade / event…';
+    if (placeholder && placeholder.textContent !== 'Choose a grade / event…') placeholder.textContent = 'Choose a grade / event…';
     select?.setAttribute('aria-label', 'Use the same programme as another grade or event');
     const copyButton = copyBox.querySelector('.copy-progression-btn');
-    if (copyButton) copyButton.textContent = 'Use Programme';
+    if (copyButton && copyButton.textContent !== 'Use Programme') copyButton.textContent = 'Use Programme';
     const warning = copyBox.querySelector('.copy-warning');
     if (warning?.textContent.includes('Progression copied from')) warning.textContent = warning.textContent.replace('Progression copied from', 'Programme copied from');
   }
@@ -238,7 +238,9 @@
     const gradesCard = document.getElementById('gradeChoices')?.closest('.card');
     gradesCard?.querySelector('#progressionHelpBtn')?.remove();
     const description = gradesCard?.querySelector('.card-heading-row p');
-    if (description) description.textContent = 'Select everything being run. Each selection will create its own programme section below.';
+    if (description && description.textContent !== 'Select everything being run. Each selection will create its own programme section below.') {
+      description.textContent = 'Select everything being run. Each selection will create its own programme section below.';
+    }
     polishProgrammeCard(document.getElementById('eventConfigTemplate')?.content?.querySelector('.event-card'));
     document.querySelectorAll('#eventConfigs .event-card').forEach(polishProgrammeCard);
   }
@@ -254,7 +256,19 @@
   });
 
   const eventConfigs = document.getElementById('eventConfigs');
-  if (eventConfigs) new MutationObserver(polishProgrammeLanguage).observe(eventConfigs, { childList: true, subtree: true });
+  if (eventConfigs) {
+    new MutationObserver(mutations => {
+      const cards = new Set();
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (!(node instanceof Element)) return;
+          if (node.matches('.event-card')) cards.add(node);
+          node.querySelectorAll?.('.event-card').forEach(card => cards.add(card));
+        });
+      });
+      cards.forEach(polishProgrammeCard);
+    }).observe(eventConfigs, { childList: true });
+  }
 
   function eventSummary(pack) {
     const events = pack.competitionSetup?.events || {};
