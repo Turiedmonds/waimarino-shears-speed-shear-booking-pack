@@ -6,7 +6,7 @@ const SETTINGS = {
   logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
   brandRed: '#EB1D27',
   termsEffectiveLabel: 'August 2026',
-  currentAppVersion: '1.4.0',
+  currentAppVersion: '1.5.0',
   timingImportSchemaVersion: 2
 };
 
@@ -246,7 +246,7 @@ function createBookingDocument_(pack) {
     ['Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No']
   ]);
 
-  appendProgrammeSection_(body, setup.events || {});
+  appendRoundFormatSection_(body, setup.events || {});
   appendConfirmedRunningOrder_(body, setup.program || []);
 
   appendSection_(body, 'Agreement', [
@@ -313,9 +313,9 @@ function appendSection_(body, heading, rows) {
   });
 }
 
-function appendProgrammeSection_(body, events) {
+function appendRoundFormatSection_(body, events) {
   appendBlock_(body, cell => {
-    sectionHeading_(cell, 'Programme of Events');
+    sectionHeading_(cell, 'Grade / Event Round Format');
     const names = Object.keys(events || {});
     names.forEach(name => appendEvent_(cell, name, events[name]));
     if (!names.length) cell.appendParagraph('No grades or events selected.').setSpacingAfter(4);
@@ -353,31 +353,59 @@ function appendEvent_(parent, name, event) {
   }
 }
 
+function programmeGroupLabel_(roundName) {
+  const raw = String(roundName || '').trim();
+  const lower = raw.toLowerCase();
+  if (/^heats?$/.test(lower)) return 'Heats';
+  if (/^quarter[-\s]?finals?$/.test(lower)) return 'Quarter-finals';
+  if (/^semi[-\s]?finals?$/.test(lower)) return 'Semi-finals';
+  if (/^finals?$/.test(lower)) return 'Finals';
+  return raw || 'Other round';
+}
+
+function programmeGroups_(program) {
+  const groups = [];
+  normaliseProgramme_(program).forEach(item => {
+    const label = programmeGroupLabel_(item.round);
+    const previous = groups.length ? groups[groups.length - 1] : null;
+    if (!previous || previous.label !== label) {
+      groups.push({ label, items: [item] });
+    } else {
+      previous.items.push(item);
+    }
+  });
+  return groups;
+}
+
 function appendConfirmedRunningOrder_(body, program) {
   appendBlock_(body, cell => {
-    sectionHeading_(cell, 'Competition Programme — Confirmed Running Order');
+    sectionHeading_(cell, 'Programme of Events');
     cell.appendParagraph('Confirmed by organiser. This is the running order supplied for timing-system setup.')
       .setBold(true)
       .setSpacingBefore(0)
-      .setSpacingAfter(4);
+      .setSpacingAfter(5);
 
-    const items = normaliseProgramme_(program);
-    if (!items.length) {
+    const groups = programmeGroups_(program);
+    if (!groups.length) {
       cell.appendParagraph('No confirmed running order supplied.').setSpacingAfter(4);
       return;
     }
 
-    const tableRows = [['Order', 'Grade / event', 'Round']];
-    items.forEach(item => tableRows.push([
-      String(item.sequence),
-      display_(item.grade),
-      display_(item.round)
-    ]));
-    const table = cell.appendTable(tableRows);
-    for (let c = 0; c < 3; c++) {
-      table.getRow(0).getCell(c).setBackgroundColor('#111111');
-      table.getRow(0).getCell(c).editAsText().setBold(true).setForegroundColor('#ffffff');
-    }
+    groups.forEach(group => {
+      const groupHeading = cell.appendParagraph(group.label);
+      groupHeading.setBold(true).setFontSize(11).setForegroundColor('#111111').setSpacingBefore(5).setSpacingAfter(2);
+
+      const tableRows = [['Order', 'Grade / event']];
+      group.items.forEach(item => tableRows.push([
+        String(item.sequence),
+        display_(item.grade)
+      ]));
+      const table = cell.appendTable(tableRows);
+      for (let c = 0; c < 2; c++) {
+        table.getRow(0).getCell(c).setBackgroundColor('#111111');
+        table.getRow(0).getCell(c).editAsText().setBold(true).setForegroundColor('#ffffff');
+      }
+    });
   });
 }
 
