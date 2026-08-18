@@ -321,6 +321,7 @@
       handle,
       row,
       fromIndex,
+      startY: event.clientY,
       targetIndex: fromIndex,
       position: 'before',
       moved: false
@@ -332,6 +333,8 @@
   function updatePointerDrag(event) {
     if (!dragState || event.pointerId !== dragState.pointerId) return;
     event.preventDefault();
+    if (!dragState.moved && Math.abs(event.clientY - dragState.startY) < 8) return;
+
     const rows = [...listEl.querySelectorAll('.competition-programme-row')]
       .filter(row => row !== dragState.row);
     if (!rows.length) return;
