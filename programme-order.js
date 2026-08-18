@@ -31,6 +31,12 @@
     choices.insertBefore(label, choices.firstElementChild || null);
   }
 
+  function repairNoviceLoadedState() {
+    const events = state.competitionSetup?.events || {};
+    if (!Object.prototype.hasOwnProperty.call(events, 'Novice')) return;
+    if (typeof applyStateToForm === 'function') applyStateToForm();
+  }
+
   function installProgrammeUi() {
     const configPanel = document.querySelector('.step-panel[data-panel="3"]');
     const judgingCard = [...(configPanel?.querySelectorAll(':scope > .card') || [])]
@@ -360,15 +366,26 @@
   function enforceSubmissionGuard() {
     const ready = programmeState.confirmed && programmeMatchesCurrentConfiguration();
     const submitted = state.booking?.status === 'submitted';
+    const accepted = Boolean(document.getElementById('termsAccepted')?.checked);
     const submit = document.getElementById('submitBookingRequestBtn');
     const email = document.getElementById('emailBookingRequestBtn');
-    if (submit && !submitted && !ready) {
-      submit.disabled = true;
-      submit.title = 'Confirm the Programme of Events running order before submitting.';
+
+    if (submit) {
+      submit.disabled = submitted || !accepted || !ready;
+      if (submitted) {
+        submit.title = 'This booking has already been sent.';
+      } else if (!accepted) {
+        submit.title = 'Accept the Hire Terms & Conditions before submitting.';
+      } else if (!ready) {
+        submit.title = 'Confirm the Programme of Events running order before submitting.';
+      } else {
+        submit.title = '';
+      }
     }
-    if (email && !submitted && !ready) {
-      email.disabled = true;
-      email.title = 'Confirm the Programme of Events running order before emailing the booking request.';
+
+    if (email) {
+      email.disabled = submitted || !ready;
+      email.title = !submitted && !ready ? 'Confirm the Programme of Events running order before emailing the booking request.' : '';
     }
   }
 
@@ -395,6 +412,7 @@
   document.head.appendChild(style);
 
   ensureNoviceChoice();
+  repairNoviceLoadedState();
   installProgrammeUi();
   installFunctionWrappers();
   installStructureListeners();
