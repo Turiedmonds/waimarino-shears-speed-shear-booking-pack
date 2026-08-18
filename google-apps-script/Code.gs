@@ -3,7 +3,10 @@ const SETTINGS = {
   companyName: 'Waimarino Shears Incorporated',
   senderName: 'Waimarino Shears Booking Pack',
   driveFolderName: 'Waimarino Speed Shear Bookings',
-  logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png'
+  logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
+  brandRed: '#EB1D27',
+  currentTermsVersion: '2',
+  currentAppVersion: '1.2.0'
 };
 
 function doGet() {
@@ -14,7 +17,7 @@ function doGet() {
 
 function doPost(e) {
   try {
-    const pack = parseRequest_(e);
+    const pack = normalisePack_(parseRequest_(e));
     validatePack_(pack);
 
     const files = buildBookingFiles_(pack);
@@ -44,6 +47,16 @@ function parseRequest_(e) {
   }
 }
 
+function normalisePack_(pack) {
+  if (!pack || typeof pack !== 'object') return pack;
+  pack.appVersion = SETTINGS.currentAppVersion;
+  pack.booking = pack.booking || {};
+  pack.booking.termsVersion = SETTINGS.currentTermsVersion;
+  pack.commercial = pack.commercial || {};
+  pack.commercial.balanceDueDaysAfterEvent = 7;
+  return pack;
+}
+
 function validatePack_(pack) {
   if (!pack || pack.type !== 'competition_booking_pack') throw new Error('Unsupported booking file type.');
   if (!pack.booking) throw new Error('Booking details are missing.');
@@ -54,7 +67,8 @@ function validatePack_(pack) {
 }
 
 function buildBookingFiles_(pack) {
-  const baseName = safeFileName_(pack.booking.competitionName || 'Speed Shear') + '_' + (pack.booking.competitionDate || 'undated') + '_Booking';
+  const displayDate = formatFileDate_(pack.booking.competitionDate);
+  const baseName = safeFileName_(pack.booking.competitionName || 'Speed Shear') + '_' + displayDate + '_Booking';
   const json = Utilities.newBlob(
     JSON.stringify(pack, null, 2),
     'application/json',
@@ -78,23 +92,20 @@ function createBookingDocument_(pack) {
   const doc = DocumentApp.create(title);
   const body = doc.getBody();
 
-  body.setMarginTop(28);
-  body.setMarginBottom(28);
-  body.setMarginLeft(36);
-  body.setMarginRight(36);
+  body.setMarginTop(24);
+  body.setMarginBottom(24);
+  body.setMarginLeft(34);
+  body.setMarginRight(34);
 
   appendLogo_(body);
 
-  const company = body.appendParagraph(SETTINGS.companyName.toUpperCase());
-  company.setForegroundColor('#c1121f').setBold(true).setFontSize(10).setSpacingAfter(4);
-
   const heading = body.appendParagraph('Speed Shear Hire & Booking Pack');
   heading.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  heading.setForegroundColor('#111111').setSpacingBefore(0).setSpacingAfter(6);
+  heading.setForegroundColor('#111111').setSpacingBefore(2).setSpacingAfter(5);
   body.appendHorizontalRule();
 
   const status = body.appendParagraph('BOOKING REQUEST — NOT CONFIRMED UNTIL THE $300 DEPOSIT HAS BEEN PAID');
-  status.setBold(true).setForegroundColor('#c1121f').setFontSize(10).setSpacingBefore(4).setSpacingAfter(8);
+  status.setBold(true).setForegroundColor(SETTINGS.brandRed).setFontSize(10).setSpacingBefore(4).setSpacingAfter(7);
 
   appendSection_(body, 'Booking details', [
     ['Competition / Speed Shear', pack.booking.competitionName],
@@ -126,11 +137,7 @@ function createBookingDocument_(pack) {
     ['Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No']
   ]);
 
-  const events = pack.competitionSetup && pack.competitionSetup.events || {};
-  sectionHeading_(body, 'Programme of Events');
-
-  Object.keys(events).forEach(name => appendEvent_(body, name, events[name]));
-  if (!Object.keys(events).length) body.appendParagraph('No grades or events selected.').setSpacingAfter(6);
+  appendProgrammeSection_(body, pack.competitionSetup && pack.competitionSetup.events || {});
 
   appendSection_(body, 'Agreement', [
     ['Terms accepted', pack.booking.termsAccepted ? 'Yes' : 'No'],
@@ -140,12 +147,7 @@ function createBookingDocument_(pack) {
     ['Booking ID', pack.identity && pack.identity.bookingId || '—']
   ]);
 
-  const next = sectionHeading_(body, 'What happens next?');
-  next.setSpacingBefore(14);
-  body.appendListItem('Waimarino Shears reviews this booking request.');
-  body.appendListItem('A $300 deposit invoice is sent to the organiser.');
-  body.appendListItem('The booking is confirmed once the deposit has been paid.');
-  body.appendListItem('If changes are needed after submission, contact Waimarino Shears directly. Please do not submit another booking request.');
+  appendNextSteps_(body);
 
   return doc;
 }
@@ -158,7 +160,7 @@ function appendLogo_(body) {
     const image = body.appendImage(response.getBlob());
     const originalWidth = image.getWidth();
     const originalHeight = image.getHeight();
-    const targetHeight = 72;
+    const targetHeight = 70;
     if (originalHeight > 0) {
       image.setHeight(targetHeight);
       image.setWidth(Math.round(originalWidth * (targetHeight / originalHeight)));
@@ -168,39 +170,58 @@ function appendLogo_(body) {
   }
 }
 
-function sectionHeading_(body, heading) {
-  const h = body.appendParagraph(heading);
+function appendBlock_(body, builder) {
+  const wrapper = body.appendTable([['']]);
+  wrapper.setBorderWidth(0);
+  const cell = wrapper.getRow(0).getCell(0);
+  cell.clear();
+  builder(cell);
+  body.appendParagraph('').setFontSize(2).setSpacingBefore(0).setSpacingAfter(0);
+}
+
+function sectionHeading_(parent, heading) {
+  const h = parent.appendParagraph(heading);
   h.setHeading(DocumentApp.ParagraphHeading.HEADING2)
-    .setForegroundColor('#c1121f')
-    .setSpacingBefore(12)
-    .setSpacingAfter(5);
+    .setForegroundColor(SETTINGS.brandRed)
+    .setSpacingBefore(5)
+    .setSpacingAfter(4);
   return h;
 }
 
 function appendSection_(body, heading, rows) {
-  sectionHeading_(body, heading);
-
-  const table = body.appendTable(rows.map(row => [String(row[0]), display_(row[1])]));
-  for (let r = 0; r < table.getNumRows(); r++) {
-    const row = table.getRow(r);
-    const labelCell = row.getCell(0);
-    const valueCell = row.getCell(1);
-    labelCell.setBackgroundColor('#f2f2f2');
-    labelCell.editAsText().setBold(true).setForegroundColor('#333333');
-    valueCell.editAsText().setForegroundColor('#111111');
-  }
+  appendBlock_(body, cell => {
+    sectionHeading_(cell, heading);
+    const table = cell.appendTable(rows.map(row => [String(row[0]), display_(row[1])]));
+    for (let r = 0; r < table.getNumRows(); r++) {
+      const row = table.getRow(r);
+      const labelCell = row.getCell(0);
+      const valueCell = row.getCell(1);
+      labelCell.setBackgroundColor('#f2f2f2');
+      labelCell.editAsText().setBold(true).setForegroundColor('#333333');
+      valueCell.editAsText().setForegroundColor('#111111');
+    }
+  });
 }
 
-function appendEvent_(body, name, event) {
-  const p = body.appendParagraph(name);
-  p.setBold(true).setFontSize(12).setForegroundColor('#111111').setSpacingBefore(7).setSpacingAfter(2);
+function appendProgrammeSection_(body, events) {
+  appendBlock_(body, cell => {
+    sectionHeading_(cell, 'Programme of Events');
+    const names = Object.keys(events || {});
+    names.forEach(name => appendEvent_(cell, name, events[name]));
+    if (!names.length) cell.appendParagraph('No grades or events selected.').setSpacingAfter(4);
+  });
+}
+
+function appendEvent_(parent, name, event) {
+  const p = parent.appendParagraph(name);
+  p.setBold(true).setFontSize(12).setForegroundColor('#111111').setSpacingBefore(5).setSpacingAfter(2);
 
   const cleanShear = event && event.cleanShear
     ? `Yes${event.cleanShearTimeLimit ? ` — ${event.cleanShearTimeLimit}` : ''}`
     : 'No';
-  body.appendParagraph(`Clean shear: ${cleanShear}    Prize placings: ${display_(event && event.prizePlacings)}`)
+  parent.appendParagraph(`Clean shear: ${cleanShear}    Prize placings: ${display_(event && event.prizePlacings)}`)
     .setSpacingBefore(0)
-    .setSpacingAfter(4);
+    .setSpacingAfter(3);
 
   const rounds = event && Array.isArray(event.rounds) ? event.rounds : [];
   if (rounds.length) {
@@ -210,14 +231,24 @@ function appendEvent_(body, name, event) {
       display_(round.sheepPerShearer),
       round.qualifiers == null ? '—' : String(round.qualifiers)
     ]));
-    const table = body.appendTable(tableRows);
+    const table = parent.appendTable(tableRows);
     for (let c = 0; c < 3; c++) {
       table.getRow(0).getCell(c).setBackgroundColor('#111111');
       table.getRow(0).getCell(c).editAsText().setBold(true).setForegroundColor('#ffffff');
     }
   } else {
-    body.appendParagraph('No rounds entered.').setSpacingAfter(4);
+    parent.appendParagraph('No rounds entered.').setSpacingAfter(4);
   }
+}
+
+function appendNextSteps_(body) {
+  appendBlock_(body, cell => {
+    sectionHeading_(cell, 'What happens next?');
+    cell.appendParagraph('1. Waimarino Shears reviews this booking request.').setSpacingAfter(2);
+    cell.appendParagraph('2. A $300 deposit invoice is sent to the organiser.').setSpacingAfter(2);
+    cell.appendParagraph('3. The booking is confirmed once the deposit has been paid.').setSpacingAfter(2);
+    cell.appendParagraph('4. If changes are needed after submission, contact Waimarino Shears directly. Please do not submit another booking request.').setSpacingAfter(2);
+  });
 }
 
 function saveBookingFiles_(files) {
@@ -255,8 +286,8 @@ function sendOrganiserConfirmation_(pack, pdf) {
       <h2 style="margin-bottom:6px">Booking request received</h2>
       <p>Hi ${escapeHtml_(pack.booking.contactPerson || '')},</p>
       <p>We have received your booking request for <strong>${escapeHtml_(pack.booking.competitionName || '')}</strong>.</p>
-      <p>Your completed Booking Pack is attached for your records.</p>
-      <div style="border-left:5px solid #c1121f;background:#fff4f4;padding:12px 14px;margin:18px 0">
+      <p>Your completed Booking Pack PDF is attached for your records.</p>
+      <div style="border-left:5px solid ${SETTINGS.brandRed};background:#fff4f4;padding:12px 14px;margin:18px 0">
         <strong>Your booking is not confirmed yet.</strong><br>
         Waimarino Shears will review the request and send the $300 deposit invoice. The booking is confirmed once the deposit has been paid.
       </div>
@@ -268,7 +299,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
   MailApp.sendEmail({
     to: pack.booking.email,
     subject,
-    body: `We have received your booking request for ${pack.booking.competitionName}. Your booking is not confirmed until the deposit has been paid. If changes are needed, contact Waimarino Shears directly and do not submit another booking request.`,
+    body: `We have received your booking request for ${pack.booking.competitionName}. Your Booking Pack PDF is attached. Your booking is not confirmed until the deposit has been paid. If changes are needed, contact Waimarino Shears directly and do not submit another booking request.`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: SETTINGS.receiverEmail,
@@ -331,6 +362,11 @@ function formatEventDate_(value) {
   return `${Number(match[3])} ${months[monthIndex]} ${match[1]}`;
 }
 
+function formatFileDate_(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  return match ? `${match[3]}-${match[2]}-${match[1]}` : 'undated';
+}
+
 function formatEventTime_(value) {
   if (!value) return '—';
   const match = /^(\d{1,2}):(\d{2})$/.exec(String(value));
@@ -347,7 +383,7 @@ function formatDateTime_(value) {
   if (!value) return '—';
   const date = new Date(value);
   if (isNaN(date.getTime())) return String(value);
-  return Utilities.formatDate(date, 'Pacific/Auckland', 'd MMM yyyy, h:mm a');
+  return Utilities.formatDate(date, 'Pacific/Auckland', 'd MMMM yyyy, h:mm a');
 }
 
 function safeFileName_(value) {
