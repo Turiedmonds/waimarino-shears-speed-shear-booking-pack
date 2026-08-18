@@ -1,7 +1,9 @@
 (() => {
-  const POLISH_VERSION = '1.5.1';
+  const POLISH_VERSION = '1.5.2';
   const TEAM_NAMES_KEY = 'teamEventNames';
   let rowDragState = null;
+
+  const COPY_ROUND_HELP_TEXT = 'Use Copy Round Format when another grade or event will use the same round structure. For example, if Intermediate has already been set up as Heats, Semi-final and Final, and Senior will use the same structure, copy the Intermediate round format to Senior instead of creating it again from scratch. After copying, check the sheep per shearer and number qualifying for every round, because these can still differ between grades or events.';
 
   function uniqueNames(values) {
     const seen = new Set();
@@ -220,31 +222,78 @@
     }
   }
 
-  function clearWholeRowDragTargets(list) {
+  function clearDragTargets(list) {
     list?.querySelectorAll('.programme-drag-target-before, .programme-drag-target-after').forEach(row => {
       row.classList.remove('programme-drag-target-before', 'programme-drag-target-after');
     });
   }
 
-  function installWholeRowDrag() {
+  function installProgrammeHelp(card) {
+    if (!card || card.dataset.reorderHelpInstalled === 'true') return;
+    card.dataset.reorderHelpInstalled = 'true';
+
+    const heading = card.querySelector('.competition-programme-heading');
+    const guidance = heading?.nextElementSibling;
+    if (!guidance) return;
+
+    const oldBottomHelp = card.querySelector('.help-text.no-print');
+    oldBottomHelp?.remove();
+
+    const intro = document.createElement('div');
+    intro.className = 'programme-reorder-intro no-print';
+    intro.innerHTML = `
+      <div class="programme-reorder-intro-row">
+        <p><strong>Reorder the programme:</strong> drag the grade/event and round text to move it several places, or use the ↑ and ↓ buttons for one-place moves.</p>
+        <button type="button" class="programme-reorder-help" aria-label="Help with Programme of Events reordering" aria-expanded="false" title="How does Programme of Events reordering work?">?</button>
+      </div>
+      <div class="programme-reorder-help-text hidden">
+        <p>The confirmed Programme of Events tells the timing system which grade/event round comes next, so the order needs to match how your competition will actually run on the day.</p>
+        <p><strong>Mouse:</strong> point to the grade/event and round text until the grab cursor appears, then drag it to the required position.</p>
+        <p><strong>Touchscreen:</strong> press and drag the grade/event and round text. To scroll the page normally, swipe on the number or blank area of a programme row instead.</p>
+        <p><strong>Arrows:</strong> use ↑ or ↓ to move a round one place at a time. You can place any grade/event round in the exact order required by your competition.</p>
+      </div>`;
+
+    guidance.insertAdjacentElement('afterend', intro);
+    const helpButton = intro.querySelector('.programme-reorder-help');
+    const helpText = intro.querySelector('.programme-reorder-help-text');
+    helpButton?.addEventListener('click', () => {
+      const opening = helpText?.classList.contains('hidden');
+      helpText?.classList.toggle('hidden', !opening);
+      helpButton.setAttribute('aria-expanded', String(Boolean(opening)));
+    });
+  }
+
+  function refreshCopyRoundHelpText() {
+    document.querySelectorAll('.copy-round-format-help-text').forEach(help => {
+      help.textContent = COPY_ROUND_HELP_TEXT;
+    });
+  }
+
+  function scheduleCopyRoundHelpTextRefresh() {
+    window.setTimeout(refreshCopyRoundHelpText, 60);
+  }
+
+  function installTextAreaDrag() {
     const list = document.getElementById('competitionProgrammeList');
     const card = document.getElementById('competitionProgrammeCard');
-    if (!list || !card || list.dataset.wholeRowDrag === 'true') return Boolean(list?.dataset.wholeRowDrag === 'true');
-    list.dataset.wholeRowDrag = 'true';
-
-    const help = card.querySelector('.help-text.no-print');
-    if (help) help.textContent = 'Drag anywhere on a programme row to move it several places at once, or use the ↑ and ↓ buttons for one-place moves. On a computer the row shows a grab cursor when it can be dragged. Dragging also works with touch and stylus.';
+    if (!list || !card || list.dataset.textAreaDrag === 'true') return Boolean(list?.dataset.textAreaDrag === 'true');
+    list.dataset.textAreaDrag = 'true';
+    installProgrammeHelp(card);
 
     list.addEventListener('pointerdown', event => {
-      if (event.button > 0 || event.target.closest('.programme-move-btn')) return;
-      const row = event.target.closest('.competition-programme-row');
+      if (event.button > 0) return;
+      const dragArea = event.target.closest('.programme-label');
+      if (!dragArea) return;
+      const row = dragArea.closest('.competition-programme-row');
       if (!row) return;
       const fromIndex = Number.parseInt(row.dataset.index, 10);
       if (!Number.isInteger(fromIndex)) return;
+
       event.preventDefault();
-      try { row.setPointerCapture(event.pointerId); } catch (_) {}
+      try { dragArea.setPointerCapture(event.pointerId); } catch (_) {}
       rowDragState = {
         pointerId: event.pointerId,
+        dragArea,
         row,
         fromIndex,
         startY: event.clientY,
@@ -260,8 +309,10 @@
       if (!rowDragState || event.pointerId !== rowDragState.pointerId) return;
       event.preventDefault();
       if (!rowDragState.moved && Math.abs(event.clientY - rowDragState.startY) < 8) return;
+
       const rows = [...list.querySelectorAll('.competition-programme-row')].filter(row => row !== rowDragState.row);
       if (!rows.length) return;
+
       let closest = null;
       let distance = Infinity;
       rows.forEach(row => {
@@ -274,13 +325,15 @@
         }
       });
       if (!closest) return;
+
       const targetIndex = Number.parseInt(closest.row.dataset.index, 10);
       const position = event.clientY < closest.center ? 'before' : 'after';
-      clearWholeRowDragTargets(list);
+      clearDragTargets(list);
       closest.row.classList.add(position === 'before' ? 'programme-drag-target-before' : 'programme-drag-target-after');
       rowDragState.targetIndex = targetIndex;
       rowDragState.position = position;
       rowDragState.moved = true;
+
       if (event.clientY < 80) window.scrollBy({ top: -18, behavior: 'auto' });
       if (event.clientY > window.innerHeight - 80) window.scrollBy({ top: 18, behavior: 'auto' });
     }, true);
@@ -289,11 +342,12 @@
       if (!rowDragState || event.pointerId !== rowDragState.pointerId) return;
       const drag = rowDragState;
       rowDragState = null;
-      clearWholeRowDragTargets(list);
+      clearDragTargets(list);
       drag.row.classList.remove('programme-row-dragging');
       document.body.classList.remove('programme-reordering');
-      try { drag.row.releasePointerCapture(event.pointerId); } catch (_) {}
+      try { drag.dragArea.releasePointerCapture(event.pointerId); } catch (_) {}
       if (cancelled || !drag.moved) return;
+
       let insertIndex = drag.targetIndex + (drag.position === 'after' ? 1 : 0);
       if (insertIndex > drag.fromIndex) insertIndex -= 1;
       const maxIndex = Math.max(0, list.querySelectorAll('.competition-programme-row').length - 1);
@@ -309,10 +363,19 @@
   const style = document.createElement('style');
   style.textContent = `
     .programme-drag-handle{display:none!important}
-    .competition-programme-row{grid-template-columns:38px minmax(0,1fr) auto!important;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-    .competition-programme-row.programme-row-dragging{cursor:grabbing}
+    .competition-programme-row{grid-template-columns:38px minmax(0,1fr) auto!important;cursor:default;touch-action:pan-y}
+    .competition-programme-row .programme-label{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+    .competition-programme-row.programme-row-dragging .programme-label{cursor:grabbing}
     .competition-programme-row .programme-move-actions{cursor:default}
     .competition-programme-row .programme-move-btn{cursor:pointer}
+    .programme-reorder-intro{margin:10px 0 14px;padding:11px 12px;border:1px solid var(--line,#ddd);border-left:4px solid var(--brand-2);border-radius:9px;background:#fafafa}
+    .programme-reorder-intro-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .programme-reorder-intro-row p{margin:0}
+    .programme-reorder-help{display:inline-grid;place-items:center;flex:0 0 auto;width:30px;height:30px;border:1px solid #999;border-radius:50%;background:#fff;color:#444;font-weight:900;line-height:1;cursor:pointer}
+    .programme-reorder-help:hover{border-color:var(--brand-2);color:var(--brand-2)}
+    .programme-reorder-help-text{margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#ddd)}
+    .programme-reorder-help-text p{margin:0 0 8px;color:#444;font-size:.92rem}
+    .programme-reorder-help-text p:last-child{margin-bottom:0}
     .team-events-wrap{margin-top:12px;padding:14px;border:1px solid var(--line,#ddd);border-radius:10px;background:var(--surface-soft,#fafafa)}
     .team-events-wrap.hidden{display:none}
     .team-events-heading{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
@@ -320,14 +383,21 @@
     .team-event-name-list{display:grid;gap:10px;margin-top:12px}
     .team-event-name-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
     .team-event-name-row .field{margin:0}
-    @media(max-width:700px){.competition-programme-row{grid-template-columns:34px minmax(0,1fr)!important}.programme-sequence{grid-row:1 / span 2}.programme-label{grid-column:2}.programme-move-actions{grid-column:2}.team-event-name-row{grid-template-columns:1fr auto}}
+    @media(max-width:700px){.competition-programme-row{grid-template-columns:34px minmax(0,1fr)!important}.programme-sequence{grid-row:1 / span 2}.programme-label{grid-column:2}.programme-move-actions{grid-column:2}.team-event-name-row{grid-template-columns:1fr auto}.programme-reorder-intro-row{align-items:center}}
   `;
   document.head.appendChild(style);
 
   function initialise() {
     installMultiTeamEvents();
-    if (!installWholeRowDrag()) window.setTimeout(initialise, 80);
+    if (!installTextAreaDrag()) window.setTimeout(initialise, 80);
+    scheduleCopyRoundHelpTextRefresh();
   }
+
+  const gradeChoices = document.getElementById('gradeChoices');
+  const eventConfigs = document.getElementById('eventConfigs');
+  gradeChoices?.addEventListener('change', scheduleCopyRoundHelpTextRefresh);
+  eventConfigs?.addEventListener('input', scheduleCopyRoundHelpTextRefresh);
+  eventConfigs?.addEventListener('change', scheduleCopyRoundHelpTextRefresh);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialise, { once: true });
   else initialise();
