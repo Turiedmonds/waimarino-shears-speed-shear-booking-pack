@@ -2,7 +2,7 @@
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
   const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypCyJhLAup1GugHAqIhPZnxKRFZ1Eoaq372Msmv9PL19cu8dvSI2NnSaj_ZajTsdf2YA/exec';
   const CURRENT_TERMS_VERSION = 'August 2026';
-  const CURRENT_APP_VERSION = '1.3.1';
+  const CURRENT_APP_VERSION = '1.4.0';
   const BRAND_RED = '#EB1D27';
   const logoUrl = new URL('assets/Waimarino%20Shears%20Logo.png', window.location.href).href;
 
@@ -482,4 +482,9 @@
 
   installSubmissionUi();
   installAutoSave();
+
+  const programmeScript = document.createElement('script');
+  programmeScript.src = `programme-order.js?v=${CURRENT_APP_VERSION}`;
+  programmeScript.async = false;
+  document.body.appendChild(programmeScript);
 })();

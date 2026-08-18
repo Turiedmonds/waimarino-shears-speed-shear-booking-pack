@@ -6,8 +6,8 @@ const SETTINGS = {
   logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
   brandRed: '#EB1D27',
   termsEffectiveLabel: 'August 2026',
-  currentAppVersion: '1.3.1',
-  timingImportSchemaVersion: 1
+  currentAppVersion: '1.4.0',
+  timingImportSchemaVersion: 2
 };
 
 function doGet() {
@@ -52,6 +52,16 @@ function parseRequest_(e) {
   }
 }
 
+function normaliseProgramme_(program) {
+  return (Array.isArray(program) ? program : [])
+    .filter(item => item && String(item.grade || '').trim() && String(item.round || '').trim())
+    .map((item, index) => ({
+      sequence: index + 1,
+      grade: String(item.grade || '').trim(),
+      round: String(item.round || '').trim()
+    }));
+}
+
 function normalisePack_(pack) {
   if (!pack || typeof pack !== 'object') return pack;
   pack.appVersion = SETTINGS.currentAppVersion;
@@ -60,7 +70,50 @@ function normalisePack_(pack) {
   pack.booking.termsVersion = SETTINGS.termsEffectiveLabel;
   pack.commercial = pack.commercial || {};
   pack.commercial.balanceDueDaysAfterEvent = 7;
+  pack.competitionSetup = pack.competitionSetup || {};
+  pack.competitionSetup.program = normaliseProgramme_(pack.competitionSetup.program);
+  pack.competitionSetup.programmeConfirmed = pack.competitionSetup.programmeConfirmed === true;
   return pack;
+}
+
+function programmeKey_(grade, round) {
+  return `${String(grade || '').trim()}\u0000${String(round || '').trim()}`;
+}
+
+function programmeCounts_(items) {
+  const counts = {};
+  (items || []).forEach(item => {
+    const key = programmeKey_(item.grade, item.round);
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  return counts;
+}
+
+function validateProgramme_(setup) {
+  const events = setup && setup.events || {};
+  const program = normaliseProgramme_(setup && setup.program);
+  if (!setup || setup.programmeConfirmed !== true) throw new Error('Programme of Events running order has not been confirmed.');
+  if (!program.length) throw new Error('Programme of Events running order is missing.');
+
+  const expected = [];
+  Object.keys(events).forEach(grade => {
+    const rounds = events[grade] && Array.isArray(events[grade].rounds) ? events[grade].rounds : [];
+    rounds.forEach(round => expected.push({ grade, round: String(round && round.name || '').trim() }));
+  });
+
+  const expectedCounts = programmeCounts_(expected);
+  const actualCounts = programmeCounts_(program);
+  const expectedKeys = Object.keys(expectedCounts);
+  const actualKeys = Object.keys(actualCounts);
+  if (expected.length !== program.length || expectedKeys.length !== actualKeys.length) {
+    throw new Error('Programme of Events running order does not match the configured grades and rounds.');
+  }
+  for (let i = 0; i < expectedKeys.length; i++) {
+    const key = expectedKeys[i];
+    if (actualCounts[key] !== expectedCounts[key]) {
+      throw new Error('Programme of Events running order does not match the configured grades and rounds.');
+    }
+  }
 }
 
 function validatePack_(pack) {
@@ -70,6 +123,7 @@ function validatePack_(pack) {
   if (!pack.booking.contactPerson) throw new Error('Contact person is missing.');
   if (!pack.booking.email) throw new Error('Contact email is missing.');
   if (!pack.booking.termsAccepted) throw new Error('Hire Terms & Conditions have not been accepted.');
+  validateProgramme_(pack.competitionSetup || {});
 }
 
 function competitionYear_(value) {
@@ -113,7 +167,8 @@ function buildTimingImport_(pack) {
     },
     competitionSetup: {
       events: JSON.parse(JSON.stringify(setup.events || {})),
-      judging: JSON.parse(JSON.stringify(setup.judging || {}))
+      judging: JSON.parse(JSON.stringify(setup.judging || {})),
+      program: JSON.parse(JSON.stringify(normaliseProgramme_(setup.program)))
     }
   };
 }
@@ -184,13 +239,15 @@ function createBookingDocument_(pack) {
     ['Entries collected digitally', entries.digitalEntries == null ? '—' : entries.digitalEntries ? 'Yes' : 'No']
   ]);
 
-  const judging = pack.competitionSetup && pack.competitionSetup.judging || {};
+  const setup = pack.competitionSetup || {};
+  const judging = setup.judging || {};
   appendSection_(body, 'Judging configuration', [
     ['Pen judges', String(judging.penJudges == null ? 0 : judging.penJudges)],
     ['Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No']
   ]);
 
-  appendProgrammeSection_(body, pack.competitionSetup && pack.competitionSetup.events || {});
+  appendProgrammeSection_(body, setup.events || {});
+  appendConfirmedRunningOrder_(body, setup.program || []);
 
   appendSection_(body, 'Agreement', [
     ['Terms accepted', pack.booking.termsAccepted ? 'Yes' : 'No'],
@@ -296,6 +353,34 @@ function appendEvent_(parent, name, event) {
   }
 }
 
+function appendConfirmedRunningOrder_(body, program) {
+  appendBlock_(body, cell => {
+    sectionHeading_(cell, 'Competition Programme — Confirmed Running Order');
+    cell.appendParagraph('Confirmed by organiser. This is the running order supplied for timing-system setup.')
+      .setBold(true)
+      .setSpacingBefore(0)
+      .setSpacingAfter(4);
+
+    const items = normaliseProgramme_(program);
+    if (!items.length) {
+      cell.appendParagraph('No confirmed running order supplied.').setSpacingAfter(4);
+      return;
+    }
+
+    const tableRows = [['Order', 'Grade / event', 'Round']];
+    items.forEach(item => tableRows.push([
+      String(item.sequence),
+      display_(item.grade),
+      display_(item.round)
+    ]));
+    const table = cell.appendTable(tableRows);
+    for (let c = 0; c < 3; c++) {
+      table.getRow(0).getCell(c).setBackgroundColor('#111111');
+      table.getRow(0).getCell(c).editAsText().setBold(true).setForegroundColor('#ffffff');
+    }
+  });
+}
+
 function appendNextSteps_(body) {
   appendBlock_(body, cell => {
     sectionHeading_(cell, 'What happens next?');
@@ -382,6 +467,7 @@ function buildInternalEmailHtml_(pack) {
         ${emailRow_('Start time', formatEventTime_(pack.booking.startTime))}
         ${emailRow_('Pen judges', judging.penJudges == null ? 0 : judging.penJudges)}
         ${emailRow_('Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No')}
+        ${emailRow_('Programme confirmed', pack.competitionSetup && pack.competitionSetup.programmeConfirmed ? 'Yes' : 'No')}
         ${emailRow_('Accepted by', pack.booking.acceptedBy)}
         ${emailRow_('Terms version', SETTINGS.termsEffectiveLabel)}
       </table>
