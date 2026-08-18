@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '1.2.0';
+  const VERSION = '1.3.0';
   let dragState = null;
 
   const style = document.createElement('style');
@@ -236,6 +236,11 @@
   } else {
     initialise();
   }
+
+  const straightFinalScript = document.createElement('script');
+  straightFinalScript.src = 'straight-final.js?v=1.0.0';
+  straightFinalScript.async = false;
+  document.body.appendChild(straightFinalScript);
 
   window.__waimarinoProgrammeDragHandlePolishVersion = VERSION;
 })();
