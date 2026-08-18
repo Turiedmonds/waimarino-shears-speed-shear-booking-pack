@@ -6,7 +6,7 @@ const SETTINGS = {
   logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
   brandRed: '#EB1D27',
   termsEffectiveLabel: 'August 2026',
-  currentAppVersion: '1.3.0',
+  currentAppVersion: '1.3.1',
   timingImportSchemaVersion: 1
 };
 
@@ -302,7 +302,7 @@ function appendNextSteps_(body) {
     cell.appendParagraph('1. Waimarino Shears reviews this booking request.').setSpacingAfter(2);
     cell.appendParagraph('2. A $300 deposit invoice is sent to the organiser.').setSpacingAfter(2);
     cell.appendParagraph('3. The booking is confirmed once the deposit has been paid.').setSpacingAfter(2);
-    cell.appendParagraph('4. If changes are needed after submission, contact Waimarino Shears directly. Please do not submit another booking request.').setSpacingAfter(2);
+    cell.appendParagraph(`4. If changes are needed after submission, email ${SETTINGS.receiverEmail} and quote your Booking Reference. Please do not submit another booking request.`).setSpacingAfter(2);
   });
 }
 
@@ -349,7 +349,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
         <strong>Your booking is not confirmed yet.</strong><br>
         Waimarino Shears will review the request and send the $300 deposit invoice. The booking is confirmed once the deposit has been paid.
       </div>
-      <p><strong>Need to make a change?</strong> Contact Waimarino Shears directly and quote your Booking Reference. Please do not submit another booking request.</p>
+      <p><strong>Need to make a change?</strong> Email <a href="mailto:${SETTINGS.receiverEmail}">${SETTINGS.receiverEmail}</a> and quote your Booking Reference. Please do not submit another booking request.</p>
       <p>If anything needs checking, we will contact you.</p>
       <p>Waimarino Shears Incorporated</p>
     </div>`;
@@ -357,7 +357,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
   MailApp.sendEmail({
     to: pack.booking.email,
     subject,
-    body: `We have received your booking request for ${pack.booking.competitionName}. Booking Reference: ${reference}. Your Booking Pack PDF is attached. Your booking is not confirmed until the deposit has been paid. If changes are needed, contact Waimarino Shears directly and do not submit another booking request.`,
+    body: `We have received your booking request for ${pack.booking.competitionName}. Booking Reference: ${reference}. Your Booking Pack PDF is attached. Your booking is not confirmed until the deposit has been paid. If changes are needed, email ${SETTINGS.receiverEmail}, quote your Booking Reference, and do not submit another booking request.`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: SETTINGS.receiverEmail,
