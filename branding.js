@@ -2,6 +2,8 @@
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
   const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzIBm6HZVp6QgC8rRmftdWoaGepFGj1ud6hJ9SjcoaS51fDeEFEF3TWqRaJnqC_ndDYmw/exec';
   const CURRENT_TERMS_VERSION = '2';
+  const CURRENT_APP_VERSION = '1.2.0';
+  const BRAND_RED = '#EB1D27';
   const logoUrl = new URL('assets/Waimarino%20Shears%20Logo.png', window.location.href).href;
 
   function humanEventDate(value) {
@@ -19,6 +21,27 @@
     return `${hour24 % 12 || 12}:${match[2]} ${hour24 >= 12 ? 'PM' : 'AM'}`;
   }
 
+  function humanDateTimeLong(value) {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return new Intl.DateTimeFormat('en-NZ', { dateStyle: 'long', timeStyle: 'short' }).format(d);
+  }
+
+  function fileDate(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+    return match ? `${match[3]}-${match[2]}-${match[1]}` : 'undated';
+  }
+
+  function setReviewValue(label, value) {
+    document.querySelectorAll('#reviewContent .review-item').forEach(item => {
+      if (item.querySelector('span')?.textContent.trim() === label) {
+        const strong = item.querySelector('strong');
+        if (strong) strong.textContent = value;
+      }
+    });
+  }
+
   function applyBusinessRules() {
     if (typeof state !== 'undefined') {
       state.commercial.balanceDueDaysAfterEvent = 7;
@@ -31,11 +54,8 @@
     if (typeof saveDraft === 'function') {
       const originalSaveDraft = saveDraft;
       saveDraft = function protectedSaveDraft(showMessage = true) {
-        if (typeof state !== 'undefined' && state.booking.status === 'submitted') {
-          if (showMessage && typeof showToast === 'function') showToast('Submitted bookings cannot be changed. Contact Waimarino Shears if changes are needed.');
-          return;
-        }
-        return originalSaveDraft(showMessage);
+        if (typeof state !== 'undefined' && state.booking.status === 'submitted') return;
+        return originalSaveDraft(false);
       };
     }
 
@@ -43,6 +63,7 @@
       const originalBuildPackage = buildPackage;
       buildPackage = function updatedBuildPackage(submitted = false) {
         const pack = originalBuildPackage(submitted);
+        pack.appVersion = CURRENT_APP_VERSION;
         pack.commercial = { ...(pack.commercial || {}), balanceDueDaysAfterEvent: 7 };
         pack.booking = { ...(pack.booking || {}), termsVersion: CURRENT_TERMS_VERSION };
         if (typeof state !== 'undefined') {
@@ -57,8 +78,10 @@
       const originalBuildReview = buildReview;
       buildReview = function updatedBuildReview() {
         originalBuildReview();
-        const review = document.getElementById('reviewContent');
-        if (review) review.innerHTML = review.innerHTML.replaceAll('Due within 14 days after event', 'Due within 7 days after event');
+        setReviewValue('Competition date', humanEventDate(state.booking.competitionDate));
+        setReviewValue('Start time', humanEventTime(state.booking.startTime));
+        setReviewValue('Balance', 'Due within 7 days after completion of the event');
+        setReviewValue('Accepted at', humanDateTimeLong(state.booking.acceptedAt));
         updateSubmitAvailability();
       };
     }
@@ -85,69 +108,39 @@
       const logoBlock = `
         <header class="download-brand-header">
           <img class="download-brand-logo" src="${logoUrl}" alt="Waimarino Shears Incorporated logo">
-          <div class="download-brand-copy">
-            <div class="download-brand-name">Waimarino Shears Incorporated</div>
-            <div class="download-brand-title">Speed Shear Hire &amp; Booking Pack</div>
-          </div>
+          <div class="download-brand-title">Speed Shear Hire &amp; Booking Pack</div>
         </header>`;
-      const logoStyles = `<style>
-        .download-brand-header{display:flex;align-items:center;gap:18px;margin-bottom:20px;padding:0 0 16px;border-bottom:4px solid #c1121f}
-        .download-brand-logo{display:block;width:auto;height:86px;max-width:150px;object-fit:contain;flex:0 0 auto}
-        .download-brand-name{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#c1121f}
-        .download-brand-title{font-size:26px;font-weight:800;line-height:1.15;margin-top:4px;color:#111}
-        @media(max-width:650px){.download-brand-header{gap:12px}.download-brand-logo{height:58px;max-width:104px}.download-brand-title{font-size:20px}.download-brand-name{font-size:10px}}
-        @media print{.download-brand-logo{height:70px;max-width:125px}.download-brand-header{break-inside:avoid}}
+      const printStyles = `<style>
+        :root{--brand-2:${BRAND_RED};--accent:${BRAND_RED};--danger:${BRAND_RED}}
+        .download-brand-header{display:flex;align-items:center;gap:18px;margin-bottom:18px;padding:0 0 14px;border-bottom:4px solid ${BRAND_RED};break-inside:avoid;page-break-inside:avoid}
+        .download-brand-logo{display:block;width:auto;height:82px;max-width:145px;object-fit:contain;flex:0 0 auto}
+        .download-brand-title{font-size:26px;font-weight:800;line-height:1.15;color:#111}
+        .review-section,.review-event{break-inside:avoid;page-break-inside:avoid}
+        .review-section h3,.review-event h4{break-after:avoid;page-break-after:avoid}
+        .review-section{margin:10px 0;padding:14px}
+        .review-event{margin-top:8px;padding:11px}
+        @media(max-width:650px){.download-brand-header{gap:12px}.download-brand-logo{height:58px;max-width:104px}.download-brand-title{font-size:20px}}
+        @media print{.download-brand-logo{height:68px;max-width:120px}.review-section,.review-event{break-inside:avoid!important;page-break-inside:avoid!important}}
       </style>`;
 
       return html
-        .replaceAll('Due within 14 days after event', 'Due within 7 days after event')
+        .replaceAll('#c1121f', BRAND_RED)
+        .replaceAll('Due within 14 days after event', 'Due within 7 days after completion of the event')
         .replace(/Hire Terms &amp; Conditions version \d+/, `Hire Terms &amp; Conditions version ${CURRENT_TERMS_VERSION}`)
-        .replace('</head>', `${logoStyles}</head>`)
+        .replace('</head>', `${printStyles}</head>`)
         .replace('<body>', `<body>${logoBlock}`)
         .replace('<h1>Waimarino Shears Incorporated — Speed Shear Hire &amp; Booking Pack</h1>', '');
     };
   }
 
-  function installDraftHelp() {
-    const saveDraftButton = document.getElementById('saveDraftBtn');
-    if (!saveDraftButton) return;
-
-    document.getElementById('draftAutoSaveNote')?.remove();
-
-    let helpButton = document.getElementById('draftHelpBtn');
-    if (!helpButton) {
-      helpButton = document.createElement('button');
-      helpButton.id = 'draftHelpBtn';
-      helpButton.className = 'draft-help-btn no-print';
-      helpButton.type = 'button';
-      helpButton.setAttribute('aria-label', 'How Save Draft works');
-      helpButton.setAttribute('title', 'How Save Draft works');
-      saveDraftButton.insertAdjacentElement('afterend', helpButton);
-    }
-
-    let dialog = document.getElementById('draftHelpDialog');
-    if (!dialog) {
-      dialog = document.createElement('dialog');
-      dialog.id = 'draftHelpDialog';
-      dialog.innerHTML = `
-        <div class="draft-help-dialog-body">
-          <div class="dialog-heading">
-            <h3>How Save Draft works</h3>
-            <button id="closeDraftHelpBtn" class="icon-button" type="button" aria-label="Close">×</button>
-          </div>
-          <p>Your draft is saved in <strong>this browser on this device</strong>. It is not saved to Google Drive and it does not create a file in your Downloads folder.</p>
-          <p><strong>To continue later:</strong> reopen this Waimarino Shears booking page using the same browser and the same device. Your saved booking details will load automatically so you can continue.</p>
-          <p>Your progress also saves automatically while you fill in the Booking Details and Competition Configuration pages.</p>
-          <p class="help-text"><strong>Please note:</strong> a draft will not automatically appear on another phone, computer or browser. Clearing this browser's website data may remove the saved draft. Once a booking has been submitted, the editable draft is cleared.</p>
-        </div>`;
-      document.body.appendChild(dialog);
-    }
-
-    helpButton.addEventListener('click', () => dialog.showModal());
-    dialog.querySelector('#closeDraftHelpBtn')?.addEventListener('click', () => dialog.close());
-    dialog.addEventListener('click', event => {
-      if (event.target === dialog) dialog.close();
-    });
+  if (typeof downloadHumanPack === 'function') {
+    downloadHumanPack = function downloadReadablePack() {
+      syncStateFromForm();
+      ensureIds();
+      const filename = `${safeFileName(state.booking.competitionName)}_${fileDate(state.booking.competitionDate)}_Booking.html`;
+      downloadBlob(buildHumanPackHtml(), 'text/html', filename);
+      if (typeof showToast === 'function') showToast('Booking copy saved.');
+    };
   }
 
   function patchBookingPage() {
@@ -157,11 +150,10 @@
       fileInput.remove();
     }
 
-    const saveDraftButton = document.getElementById('saveDraftBtn');
-    if (saveDraftButton) {
-      saveDraftButton.textContent = 'Save Draft';
-      saveDraftButton.title = 'Save your progress on this device.';
-    }
+    document.getElementById('saveDraftBtn')?.remove();
+    document.getElementById('draftHelpBtn')?.remove();
+    document.getElementById('draftHelpDialog')?.remove();
+    document.getElementById('draftAutoSaveNote')?.remove();
 
     const balanceRow = [...document.querySelectorAll('.cost-box dl div')].find(row => row.querySelector('dt')?.textContent.trim() === 'Balance');
     if (balanceRow?.querySelector('dd')) balanceRow.querySelector('dd').textContent = 'Payable within 7 days after completion of the event';
@@ -217,8 +209,9 @@
         actions.className = 'programme-actions no-print';
         const help = document.createElement('button');
         help.type = 'button';
-        help.className = 'text-button programme-help-btn';
-        help.textContent = 'Help with Programme of Events';
+        help.className = 'programme-help-btn';
+        help.setAttribute('aria-label', 'Help with Programme of Events');
+        help.setAttribute('title', 'Help with Programme of Events');
         actions.appendChild(help);
         if (addButton) actions.appendChild(addButton);
         heading.appendChild(actions);
@@ -230,13 +223,13 @@
     const copyBox = card.querySelector('.copy-progression');
     if (!copyBox) return;
     const label = copyBox.querySelector(':scope > label');
-    if (label && label.textContent !== 'Use the same programme as…') label.textContent = 'Use the same programme as…';
+    if (label) label.textContent = 'Use the same programme as…';
     const select = copyBox.querySelector('.copy-source-select');
     const placeholder = select?.querySelector('option[value=""]');
-    if (placeholder && placeholder.textContent !== 'Choose a grade / event…') placeholder.textContent = 'Choose a grade / event…';
+    if (placeholder) placeholder.textContent = 'Choose a grade / event…';
     select?.setAttribute('aria-label', 'Use the same programme as another grade or event');
     const copyButton = copyBox.querySelector('.copy-progression-btn');
-    if (copyButton && copyButton.textContent !== 'Use Programme') copyButton.textContent = 'Use Programme';
+    if (copyButton) copyButton.textContent = 'Use Programme';
     const warning = copyBox.querySelector('.copy-warning');
     if (warning?.textContent.includes('Progression copied from')) warning.textContent = warning.textContent.replace('Progression copied from', 'Programme copied from');
   }
@@ -251,7 +244,6 @@
   }
 
   patchBookingPage();
-  installDraftHelp();
   patchHelpDialog();
   polishProgrammeLanguage();
 
@@ -292,7 +284,7 @@
       '', 'Programme of Events:', eventSummary(pack), '',
       `Terms accepted: ${pack.booking.termsAccepted ? 'Yes' : 'No'}`,
       `Accepted by: ${pack.booking.acceptedBy || '—'}`,
-      `Accepted at: ${pack.booking.acceptedAt || '—'}`,
+      `Accepted at: ${humanDateTimeLong(pack.booking.acceptedAt)}`,
       `Booking ID: ${pack.identity?.bookingId || '—'}`
     ].join('\n');
   }
@@ -374,6 +366,14 @@
     window.location.href = `mailto:${SUBMISSION_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
+  function printBookingPack() {
+    if (typeof buildReview === 'function') buildReview();
+    const previousTitle = document.title;
+    document.title = `${safeFileName(state.booking.competitionName)}_${fileDate(state.booking.competitionDate)}_Booking`;
+    window.print();
+    setTimeout(() => { document.title = previousTitle; }, 750);
+  }
+
   function installSubmissionUi() {
     const reviewPanel = document.querySelector('.step-panel[data-panel="4"]');
     const oldGrid = reviewPanel?.querySelector('.download-grid');
@@ -393,7 +393,7 @@
     document.getElementById('submitBookingRequestBtn')?.addEventListener('click', submitBookingRequest);
     document.getElementById('emailBookingRequestBtn')?.addEventListener('click', emailBookingRequest);
     document.getElementById('saveBookingPackSimpleBtn')?.addEventListener('click', () => downloadHumanPack());
-    document.getElementById('printBookingPackSimpleBtn')?.addEventListener('click', () => { if (typeof buildReview === 'function') buildReview(); window.print(); });
+    document.getElementById('printBookingPackSimpleBtn')?.addEventListener('click', printBookingPack);
     document.getElementById('termsAccepted')?.addEventListener('change', updateSubmitAvailability);
     updateSubmitAvailability();
   }
@@ -413,20 +413,25 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    .draft-help-btn{width:30px;height:30px;min-width:30px;padding:0;border:2px solid #c1121f;border-radius:50%;background:#fff;color:#c1121f;display:inline-grid;place-items:center;align-self:center;cursor:pointer}
-    .draft-help-btn::before{content:'i';font-size:18px;line-height:1;font-weight:900;font-family:Georgia,'Times New Roman',serif;transform:translateY(-1px)}
-    .draft-help-btn:hover,.draft-help-btn:focus-visible{background:#c1121f;color:#fff;outline:none}
-    #draftHelpDialog{border:0;border-radius:14px;padding:0;width:min(620px,calc(100% - 32px));box-shadow:0 20px 70px rgba(0,0,0,.28)}
-    #draftHelpDialog::backdrop{background:rgba(0,0,0,.62)}
-    .draft-help-dialog-body{padding:22px}.draft-help-dialog-body h3{margin:0}.draft-help-dialog-body p{color:#333}
+    :root{--brand-2:${BRAND_RED};--accent:${BRAND_RED};--danger:${BRAND_RED}}
+    .eyebrow{color:${BRAND_RED}}
     .cost-box{grid-template-columns:minmax(255px,auto) 1fr}.cost-box h3{white-space:nowrap;font-size:clamp(1.55rem,3vw,2rem);letter-spacing:.01em;margin-top:3px;margin-bottom:0}
     .programme-actions{display:flex;gap:9px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
     .next-steps-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--brand-2);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-top:18px}.next-steps-card h3{margin:0 0 14px}.next-steps-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.next-steps-list>div{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)}.next-steps-list span{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:var(--brand-2);color:#fff;font-weight:800}.next-steps-list p{margin:0;color:#333}
-    .booking-actions{margin-top:16px;display:grid;gap:12px}.primary-submit-card{background:#111;color:#fff;border-radius:14px;padding:22px;border-bottom:5px solid var(--brand-2);display:flex;align-items:center;justify-content:space-between;gap:18px}.primary-submit-card p{margin:0;color:#ddd;max-width:560px}.submit-booking-button{background:var(--brand-2);color:#fff;border:0;font-size:1.05rem;padding:13px 20px;white-space:nowrap}.submit-booking-button:hover{background:#9f0e19}.submit-booking-button:disabled{opacity:.55;cursor:not-allowed}
+    .booking-actions{margin-top:16px;display:grid;gap:12px}.primary-submit-card{background:#111;color:#fff;border-radius:14px;padding:22px;border-bottom:5px solid var(--brand-2);display:flex;align-items:center;justify-content:space-between;gap:18px}.primary-submit-card p{margin:0;color:#ddd;max-width:560px}.submit-booking-button{background:var(--brand-2);color:#fff;border:0;font-size:1.05rem;padding:13px 20px;white-space:nowrap}.submit-booking-button:hover{filter:brightness(.88)}.submit-booking-button:disabled{opacity:.55;cursor:not-allowed}
     .secondary-booking-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.action-tile{text-align:left;border:1px solid #bbb;border-radius:12px;background:#fff;padding:16px;color:#111}.action-tile:hover:not(:disabled){border-color:var(--brand-2);background:#fff7f7}.action-tile strong{display:block;color:var(--brand-2);font-size:1rem}.action-tile span{display:block;margin-top:5px;color:var(--muted);font-size:.92rem}.action-tile:disabled{opacity:.5;cursor:not-allowed}
     .submitted-change-note{margin:2px 0 0;padding:12px 14px;border-left:4px solid var(--brand-2);background:#fff7f7;border-radius:8px;color:#4c1519}.submission-status{padding:14px 16px;border-radius:10px}.submission-status.success{background:#f1faf3;border:1px solid #8ec89b;color:#1e5a2d}.submission-status.error{background:#fff3f3;border:1px solid #db8e94;color:#7f1119}
     @media(max-width:900px){.next-steps-list{grid-template-columns:1fr}.secondary-booking-actions{grid-template-columns:1fr 1fr}.primary-submit-card{align-items:flex-start;flex-direction:column}.cost-box{grid-template-columns:1fr}.programme-actions{justify-content:flex-start}}
-    @media(max-width:540px){.secondary-booking-actions{grid-template-columns:1fr}.submit-booking-button{width:100%;white-space:normal}.draft-help-btn{width:28px;height:28px;min-width:28px}}
+    @media(max-width:540px){.secondary-booking-actions{grid-template-columns:1fr}.submit-booking-button{width:100%;white-space:normal}}
+    @media print{
+      .site-header{border-bottom-color:${BRAND_RED}!important}
+      .site-header .eyebrow{display:none!important}
+      .review-section,.review-event{break-inside:avoid!important;page-break-inside:avoid!important}
+      .review-section h3,.review-event h4{break-after:avoid!important;page-break-after:avoid!important}
+      .review-content{display:block!important}
+      .review-section{margin:0 0 12px!important;padding:14px!important}
+      .review-event{margin-top:8px!important;padding:11px!important}
+    }
   `;
   document.head.appendChild(style);
 
