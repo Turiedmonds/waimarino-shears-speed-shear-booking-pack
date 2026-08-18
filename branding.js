@@ -1,7 +1,7 @@
 (() => {
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
   const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypCyJhLAup1GugHAqIhPZnxKRFZ1Eoaq372Msmv9PL19cu8dvSI2NnSaj_ZajTsdf2YA/exec';
-  const CURRENT_TERMS_VERSION = 'August 2026';
+  const CURRENT_TERMS_VERSION = '19 August 2026';
   const CURRENT_APP_VERSION = '1.5.0';
   const BRAND_RED = '#EB1D27';
   const logoUrl = new URL('assets/Waimarino%20Shears%20Logo.png', window.location.href).href;
@@ -526,7 +526,7 @@
     }
     const warnings = typeof validateForReview === 'function' ? validateForReview() : [];
     if (warnings.length) {
-      return setSubmissionStatus('error', '<strong>Please check the booking before emailing it.</strong><br>Complete the items listed in the review, including accepting the Hire Terms &amp; Conditions.');
+      return setSubmissionStatus('error', '<strong>Please check the booking before emailing it.</strong><br>Complete the items listed in the review, including accepting the Hire Terms & Conditions.');
     }
 
     const pack = buildPackage(true);
