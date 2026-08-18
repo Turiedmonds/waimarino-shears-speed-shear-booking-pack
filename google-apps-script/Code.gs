@@ -62,11 +62,13 @@ function buildBookingFiles_(pack) {
   );
 
   const doc = createBookingDocument_(pack);
-  Utilities.sleep(500);
-  const pdf = doc.getAs('application/pdf').setName(baseName + '.pdf');
   const docId = doc.getId();
   doc.saveAndClose();
-  DriveApp.getFileById(docId).setTrashed(true);
+  Utilities.sleep(500);
+
+  const tempDocFile = DriveApp.getFileById(docId);
+  const pdf = tempDocFile.getAs(MimeType.PDF).setName(baseName + '.pdf');
+  tempDocFile.setTrashed(true);
 
   return { pdf, json };
 }
@@ -149,12 +151,17 @@ function createBookingDocument_(pack) {
 
 function appendLogo_(body) {
   try {
-    const blob = UrlFetchApp.fetch(SETTINGS.logoUrl, { muteHttpExceptions: true }).getBlob();
-    const image = body.appendImage(blob);
-    image.setHeight(72);
-    const width = image.getWidth();
-    const height = image.getHeight();
-    if (height > 0) image.setWidth(Math.round(width * (72 / height)));
+    const response = UrlFetchApp.fetch(SETTINGS.logoUrl, { muteHttpExceptions: true });
+    if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) return;
+
+    const image = body.appendImage(response.getBlob());
+    const originalWidth = image.getWidth();
+    const originalHeight = image.getHeight();
+    const targetHeight = 72;
+    if (originalHeight > 0) {
+      image.setHeight(targetHeight);
+      image.setWidth(Math.round(originalWidth * (targetHeight / originalHeight)));
+    }
   } catch (error) {
     console.warn('Logo could not be added:', error);
   }
