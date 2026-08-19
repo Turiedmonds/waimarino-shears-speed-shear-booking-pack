@@ -69,9 +69,9 @@
       .setForegroundColor('#111111');
   }
 
-  // Keep each grade/event heading inside the table it describes. Each event is
-  // also built as its own small outer block so a page break is less likely to
-  // separate the title row from its round rows.
+  // Each grade/event stays in a small outer block. The section heading is kept
+  // with the first event, while later events can move independently if the full
+  // round-format section is taller than a page.
   appendRoundFormatSection_ = function(body, events) {
     const names = Object.keys(events || {});
 
@@ -91,11 +91,9 @@
     });
   };
 
-  // Build the Programme of Events as small keep-together blocks rather than
-  // one large table row. The heading, confirmation note and first programme
-  // item therefore move together when the remaining page space is too small.
-  // Programme items are shown only as "Grade/Event Round" in the exact order
-  // confirmed by the organiser; no order-number column or grouped round labels.
+  // Keep the entire Programme of Events in one outer section block. The
+  // document-wide keep-together pass below then moves this whole section to the
+  // next page when it would otherwise cross a page boundary.
   appendConfirmedRunningOrder_ = function(body, program) {
     const items = normaliseProgramme_(program);
 
@@ -111,11 +109,102 @@
         return;
       }
 
-      appendPdfProgrammeItem_(cell, items[0]);
+      items.forEach((item, index) => {
+        appendPdfProgrammeItem_(cell, item);
+        if (index < items.length - 1) {
+          cell.appendParagraph('').setFontSize(2).setSpacingBefore(0).setSpacingAfter(0);
+        }
+      });
     });
+  };
 
-    items.slice(1).forEach(item => {
-      appendBlock_(body, cell => appendPdfProgrammeItem_(cell, item));
-    });
+  // DocumentApp does not expose Google Docs' table-row preventOverflow flag.
+  // Every logical PDF block is already wrapped by appendBlock_ in a top-level
+  // one-row/one-cell table, so use the Docs REST API to apply preventOverflow
+  // to all of those wrapper rows after the document has been saved.
+  function applyPdfSectionKeepTogether_(docId) {
+    try {
+      const url = `https://docs.googleapis.com/v1/documents/${encodeURIComponent(docId)}`;
+      const headers = {
+        Authorization: `Bearer ${ScriptApp.getOAuthToken()}`
+      };
+
+      const readResponse = UrlFetchApp.fetch(url, {
+        method: 'get',
+        headers,
+        muteHttpExceptions: true
+      });
+
+      if (readResponse.getResponseCode() < 200 || readResponse.getResponseCode() >= 300) {
+        console.warn(`PDF keep-together read failed (${readResponse.getResponseCode()}): ${readResponse.getContentText()}`);
+        return;
+      }
+
+      const document = JSON.parse(readResponse.getContentText());
+      const content = document && document.body && Array.isArray(document.body.content)
+        ? document.body.content
+        : [];
+
+      const requests = content
+        .filter(element => {
+          const table = element && element.table;
+          const rows = table && Array.isArray(table.tableRows) ? table.tableRows : [];
+          const cells = rows.length === 1 && Array.isArray(rows[0].tableCells) ? rows[0].tableCells : [];
+          return element.startIndex != null && rows.length === 1 && cells.length === 1;
+        })
+        .map(element => ({
+          updateTableRowStyle: {
+            tableStartLocation: { index: element.startIndex },
+            rowIndices: [0],
+            tableRowStyle: { preventOverflow: true },
+            fields: 'preventOverflow'
+          }
+        }));
+
+      if (!requests.length) return;
+
+      const updateResponse = UrlFetchApp.fetch(`${url}:batchUpdate`, {
+        method: 'post',
+        contentType: 'application/json',
+        headers,
+        payload: JSON.stringify({ requests }),
+        muteHttpExceptions: true
+      });
+
+      if (updateResponse.getResponseCode() < 200 || updateResponse.getResponseCode() >= 300) {
+        console.warn(`PDF keep-together update failed (${updateResponse.getResponseCode()}): ${updateResponse.getContentText()}`);
+      }
+    } catch (error) {
+      // A layout-polish failure must never prevent the booking itself from being
+      // received, saved and emailed.
+      console.warn('PDF keep-together styling could not be applied:', error);
+    }
+  }
+
+  // Preserve the existing booking-file behaviour, adding only the universal
+  // section keep-together styling before the temporary Google Doc is exported.
+  buildBookingFiles_ = function(pack) {
+    const displayDate = formatFileDate_(pack.booking.competitionDate);
+    const baseName = safeFileName_(pack.booking.competitionName || 'Speed Shear') + '_' + displayDate + '_Booking';
+    const timingImport = buildTimingImport_(pack);
+    const json = Utilities.newBlob(
+      JSON.stringify(timingImport, null, 2),
+      'application/json',
+      baseName + '.json'
+    );
+
+    const doc = createBookingDocument_(pack);
+    const docId = doc.getId();
+    doc.saveAndClose();
+    Utilities.sleep(500);
+
+    applyPdfSectionKeepTogether_(docId);
+    Utilities.sleep(300);
+
+    const tempDocFile = DriveApp.getFileById(docId);
+    const pdf = tempDocFile.getAs(MimeType.PDF).setName(baseName + '.pdf');
+    tempDocFile.setTrashed(true);
+
+    return { pdf, json };
   };
 })();
