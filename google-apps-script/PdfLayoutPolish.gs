@@ -14,7 +14,13 @@
     table.setBorderWidth(1);
 
     const titleRow = table.appendTableRow();
-    const titleCell = titleRow.appendTableCell(pdfEventTitle_(name, event));
+    titleRow.appendTableCell(pdfEventTitle_(name, event));
+    titleRow.appendTableCell('');
+    titleRow.appendTableCell('');
+    titleRow.getCell(2).merge();
+    titleRow.getCell(1).merge();
+
+    const titleCell = titleRow.getCell(0);
     titleCell.setBackgroundColor('#f2f2f2');
     titleCell.editAsText()
       .setBold(true)
@@ -23,7 +29,9 @@
 
     if (!rounds.length) {
       const emptyRow = table.appendTableRow();
-      emptyRow.appendTableCell('No rounds entered.');
+      const emptyCell = emptyRow.appendTableCell('No rounds entered.');
+      emptyCell.setBackgroundColor('#ffffff');
+      emptyCell.editAsText().setBold(false).setForegroundColor('#111111');
       return;
     }
 
@@ -36,9 +44,15 @@
 
     rounds.forEach(round => {
       const row = table.appendTableRow();
-      row.appendTableCell(display_(round && round.name));
-      row.appendTableCell(display_(round && round.sheepPerShearer));
-      row.appendTableCell(round && round.qualifiers != null ? String(round.qualifiers) : '—');
+      const cells = [
+        row.appendTableCell(display_(round && round.name)),
+        row.appendTableCell(display_(round && round.sheepPerShearer)),
+        row.appendTableCell(round && round.qualifiers != null ? String(round.qualifiers) : '—')
+      ];
+      cells.forEach(cell => {
+        cell.setBackgroundColor('#ffffff');
+        cell.editAsText().setBold(false).setForegroundColor('#111111');
+      });
     });
   }
 
