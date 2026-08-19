@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '1.3.0';
+  const VERSION = '1.4.0';
   let dragState = null;
 
   const style = document.createElement('style');
@@ -241,6 +241,11 @@
   straightFinalScript.src = 'straight-final.js?v=1.0.0';
   straightFinalScript.async = false;
   document.body.appendChild(straightFinalScript);
+
+  const layoutSpaceTermsScript = document.createElement('script');
+  layoutSpaceTermsScript.src = 'layout-space-and-terms-tidy.js?v=1.0.0';
+  layoutSpaceTermsScript.async = false;
+  document.body.appendChild(layoutSpaceTermsScript);
 
   window.__waimarinoProgrammeDragHandlePolishVersion = VERSION;
 })();
