@@ -34,6 +34,20 @@
   margin-top: 16px !important;
 }
 
+/* Put the introduction first within Step 1, ahead of the Hire Information heading. */
+.step-panel[data-panel="1"].active {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-panel[data-panel="1"] > #hireIntroduction {
+  order: -2;
+}
+
+.step-panel[data-panel="1"] > .panel-heading {
+  order: -1;
+}
+
 /* Keep the booking-pack title geometrically centered across the desktop banner,
    regardless of the different widths of the logo and header action controls. */
 @media (min-width: 851px) {
