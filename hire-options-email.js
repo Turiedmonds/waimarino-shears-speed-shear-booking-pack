@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoHireOptionsEmailVersion) return;
-  window.__waimarinoHireOptionsEmailVersion = '1.0.0';
+  window.__waimarinoHireOptionsEmailVersion = '1.0.1';
 
   const EMAIL = 'Waimarinoshears@gmail.com';
 
@@ -53,8 +53,7 @@
     if (branding) {
       lines.push(
         'Branding cost: Additional one-off charge — price confirmed before ordering',
-        'Artwork & payment deadline: At least 14 days before the competition',
-        `Branding after event: ${pack.hire?.brandingAfterEvent === 'store' ? 'Leave with Waimarino Shears for storage and future hires' : 'Return to organiser after the competition'}`
+        'Branding & payment deadline: At least 14 days before the competition'
       );
     }
 
