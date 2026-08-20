@@ -22,6 +22,7 @@
         : STORAGE_KEY;
       const raw = localStorage.getItem(key);
       const saved = raw ? JSON.parse(raw) : null;
+      if (saved?.appVersion !== FINAL_APP_VERSION) return undefined;
       if (saved?.hire && Object.prototype.hasOwnProperty.call(saved.hire, name)) {
         return saved.hire[name];
       }
