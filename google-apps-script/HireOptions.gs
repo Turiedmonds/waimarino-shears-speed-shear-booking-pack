@@ -22,6 +22,9 @@
     const hadSetupType = !!(pack && pack.hire &&
       Object.prototype.hasOwnProperty.call(pack.hire, 'setupType'));
     const incomingSetupType = hadSetupType ? pack.hire.setupType : null;
+    const hadBrandingChoice = !!(pack && pack.hire &&
+      Object.prototype.hasOwnProperty.call(pack.hire, 'competitionBranding'));
+    const incomingBrandingChoice = hadBrandingChoice ? pack.hire.competitionBranding : null;
 
     pack = originalNormalisePack_(pack);
     if (!pack || typeof pack !== 'object') return pack;
@@ -30,7 +33,13 @@
     pack.hire.setupType = hadSetupType
       ? normaliseHireSetupType_(incomingSetupType, '')
       : normaliseHireSetupType_(pack.hire.setupType, 'full');
-    pack.hire.competitionBranding = pack.hire.setupType === 'full' && pack.hire.competitionBranding === true;
+    if (pack.hire.setupType === 'full') {
+      pack.hire.competitionBranding = hadBrandingChoice
+        ? (incomingBrandingChoice === true ? true : incomingBrandingChoice === false ? false : null)
+        : false;
+    } else {
+      pack.hire.competitionBranding = false;
+    }
     delete pack.hire.brandingAfterEvent;
 
     pack.competitionSetup = pack.competitionSetup || {};
@@ -50,6 +59,12 @@
     const stands = Number(pack && pack.competitionSetup && pack.competitionSetup.stands);
     if (stands !== 1 && stands !== 2) {
       throw new Error('Competition stands in use must be 1 or 2.');
+    }
+
+    if (setupType === 'full' &&
+        pack.hire.competitionBranding !== true &&
+        pack.hire.competitionBranding !== false) {
+      throw new Error('Choose Yes or No for competition stand branding.');
     }
 
     if (pack.hire && pack.hire.competitionBranding && setupType !== 'full') {
