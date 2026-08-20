@@ -1,5 +1,5 @@
 (() => {
-  const HIRE_OPTIONS_VERSION = '1.0.0';
+  const HIRE_OPTIONS_VERSION = '1.0.1';
   let activeHirePack_ = null;
 
   function normaliseHireSetupType_(value) {
@@ -10,20 +10,10 @@
     return Number(value) === 1 ? 1 : 2;
   }
 
-  function normaliseBrandingAfterEvent_(value) {
-    return value === 'store' || value === 'return' ? value : '';
-  }
-
   function hireSetupLabel_(pack) {
     return normaliseHireSetupType_(pack && pack.hire && pack.hire.setupType) === 'electronics-only'
       ? 'Electronics & operation on organiser-supplied shearing stand'
       : 'Full Waimarino Shears stand, electronics & operation';
-  }
-
-  function brandingAfterEventLabel_(value) {
-    if (value === 'store') return 'Leave with Waimarino Shears for storage and future hires';
-    if (value === 'return') return 'Return to organiser after the competition';
-    return '—';
   }
 
   const originalNormalisePack_ = normalisePack_;
@@ -34,9 +24,7 @@
     pack.hire = pack.hire || {};
     pack.hire.setupType = normaliseHireSetupType_(pack.hire.setupType);
     pack.hire.competitionBranding = pack.hire.setupType === 'full' && pack.hire.competitionBranding === true;
-    pack.hire.brandingAfterEvent = pack.hire.competitionBranding
-      ? normaliseBrandingAfterEvent_(pack.hire.brandingAfterEvent)
-      : '';
+    delete pack.hire.brandingAfterEvent;
 
     pack.competitionSetup = pack.competitionSetup || {};
     pack.competitionSetup.stands = normaliseHireStands_(pack.competitionSetup.stands);
@@ -57,13 +45,8 @@
       throw new Error('Competition stands in use must be 1 or 2.');
     }
 
-    if (pack.hire && pack.hire.competitionBranding) {
-      if (setupType !== 'full') {
-        throw new Error('Competition stand branding is only available when the Waimarino Shears stand is supplied.');
-      }
-      if (!normaliseBrandingAfterEvent_(pack.hire.brandingAfterEvent)) {
-        throw new Error('Choose what should happen to the competition branding panels after the event.');
-      }
+    if (pack.hire && pack.hire.competitionBranding && setupType !== 'full') {
+      throw new Error('Competition stand branding is only available when the Waimarino Shears stand is supplied.');
     }
   };
 
@@ -100,8 +83,7 @@
       if (branding) {
         hireRows.push(
           ['Branding cost', 'Additional one-off charge — price confirmed before ordering'],
-          ['Artwork & payment deadline', 'At least 14 days before the competition'],
-          ['Branding after event', brandingAfterEventLabel_(pack.hire.brandingAfterEvent)]
+          ['Branding & payment deadline', 'At least 14 days before the competition']
         );
       }
 
@@ -123,9 +105,8 @@
 
     if (branding) {
       extraRows.push(
-        emailRow_('Branding after event', brandingAfterEventLabel_(pack.hire.brandingAfterEvent)),
         emailRow_('Branding cost', 'Additional one-off charge — price confirmed before ordering'),
-        emailRow_('Branding deadline', 'Artwork and payment at least 14 days before competition')
+        emailRow_('Branding deadline', 'Competition branding and payment at least 14 days before competition')
       );
     }
 
