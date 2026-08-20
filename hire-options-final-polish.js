@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoHireOptionsFinalPolishVersion) return;
-  window.__waimarinoHireOptionsFinalPolishVersion = '1.0.0';
+  window.__waimarinoHireOptionsFinalPolishVersion = '1.0.1';
 
   function normaliseStands(value) {
     return Number(value) === 1 ? 1 : 2;
@@ -95,6 +95,8 @@
       'Accommodation',
       'Hire configuration and optional branding',
       'Equipment and operating conditions',
+      'Health, safety and access',
+      'Animal welfare',
       'Competition operation',
       'Cancellation',
       'Postponement',
@@ -208,6 +210,12 @@
     patchAndReorderTerms();
     wrapFunctions();
     if (typeof state !== 'undefined' && state?.hire) delete state.hire.brandingAfterEvent;
+
+    // The existing terms tidy script adds the health/safety and animal-welfare
+    // clauses independently. Re-run the ordering after those clauses have had
+    // time to be inserted so the final customer-facing order stays grouped.
+    window.setTimeout(patchAndReorderTerms, 250);
+    window.setTimeout(patchAndReorderTerms, 1000);
   }
 
   if (document.readyState === 'loading') {
