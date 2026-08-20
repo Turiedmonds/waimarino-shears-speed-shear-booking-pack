@@ -7,10 +7,16 @@
     hireOptions.src = 'hire-options.js?v=1.0.0';
     hireOptions.async = false;
     hireOptions.onload = () => {
-      const emailOptions = document.createElement('script');
-      emailOptions.src = 'hire-options-email.js?v=1.0.0';
-      emailOptions.async = false;
-      document.body.appendChild(emailOptions);
+      const finalPolish = document.createElement('script');
+      finalPolish.src = 'hire-options-final-polish.js?v=1.0.0';
+      finalPolish.async = false;
+      finalPolish.onload = () => {
+        const emailOptions = document.createElement('script');
+        emailOptions.src = 'hire-options-email.js?v=1.0.1';
+        emailOptions.async = false;
+        document.body.appendChild(emailOptions);
+      };
+      document.body.appendChild(finalPolish);
     };
     document.body.appendChild(hireOptions);
   };
