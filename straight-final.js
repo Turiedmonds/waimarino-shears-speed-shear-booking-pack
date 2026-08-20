@@ -6,6 +6,12 @@
     const hireOptions = document.createElement('script');
     hireOptions.src = 'hire-options.js?v=1.0.0';
     hireOptions.async = false;
+    hireOptions.onload = () => {
+      const emailOptions = document.createElement('script');
+      emailOptions.src = 'hire-options-email.js?v=1.0.0';
+      emailOptions.async = false;
+      document.body.appendChild(emailOptions);
+    };
     document.body.appendChild(hireOptions);
   };
   document.body.appendChild(core);
