@@ -1,0 +1,136 @@
+(() => {
+  const HIRE_OPTIONS_VERSION = '1.0.0';
+  let activeHirePack_ = null;
+
+  function normaliseHireSetupType_(value) {
+    return value === 'electronics-only' ? 'electronics-only' : 'full';
+  }
+
+  function normaliseHireStands_(value) {
+    return Number(value) === 1 ? 1 : 2;
+  }
+
+  function normaliseBrandingAfterEvent_(value) {
+    return value === 'store' || value === 'return' ? value : '';
+  }
+
+  function hireSetupLabel_(pack) {
+    return normaliseHireSetupType_(pack && pack.hire && pack.hire.setupType) === 'electronics-only'
+      ? 'Electronics & operation on organiser-supplied shearing stand'
+      : 'Full Waimarino Shears stand, electronics & operation';
+  }
+
+  function brandingAfterEventLabel_(value) {
+    if (value === 'store') return 'Leave with Waimarino Shears for storage and future hires';
+    if (value === 'return') return 'Return to organiser after the competition';
+    return '—';
+  }
+
+  const originalNormalisePack_ = normalisePack_;
+  normalisePack_ = function hireAwareNormalisePack_(pack) {
+    pack = originalNormalisePack_(pack);
+    if (!pack || typeof pack !== 'object') return pack;
+
+    pack.hire = pack.hire || {};
+    pack.hire.setupType = normaliseHireSetupType_(pack.hire.setupType);
+    pack.hire.competitionBranding = pack.hire.setupType === 'full' && pack.hire.competitionBranding === true;
+    pack.hire.brandingAfterEvent = pack.hire.competitionBranding
+      ? normaliseBrandingAfterEvent_(pack.hire.brandingAfterEvent)
+      : '';
+
+    pack.competitionSetup = pack.competitionSetup || {};
+    pack.competitionSetup.stands = normaliseHireStands_(pack.competitionSetup.stands);
+    return pack;
+  };
+
+  const originalValidatePack_ = validatePack_;
+  validatePack_ = function hireAwareValidatePack_(pack) {
+    originalValidatePack_(pack);
+
+    const setupType = normaliseHireSetupType_(pack && pack.hire && pack.hire.setupType);
+    if (setupType !== 'full' && setupType !== 'electronics-only') {
+      throw new Error('Hire setup type is invalid.');
+    }
+
+    const stands = Number(pack && pack.competitionSetup && pack.competitionSetup.stands);
+    if (stands !== 1 && stands !== 2) {
+      throw new Error('Competition stands in use must be 1 or 2.');
+    }
+
+    if (pack.hire && pack.hire.competitionBranding) {
+      if (setupType !== 'full') {
+        throw new Error('Competition stand branding is only available when the Waimarino Shears stand is supplied.');
+      }
+      if (!normaliseBrandingAfterEvent_(pack.hire.brandingAfterEvent)) {
+        throw new Error('Choose what should happen to the competition branding panels after the event.');
+      }
+    }
+  };
+
+  const originalBuildTimingImport_ = buildTimingImport_;
+  buildTimingImport_ = function hireAwareBuildTimingImport_(pack) {
+    const output = originalBuildTimingImport_(pack);
+    output.competitionSetup = output.competitionSetup || {};
+    output.competitionSetup.stands = normaliseHireStands_(pack && pack.competitionSetup && pack.competitionSetup.stands);
+    return output;
+  };
+
+  const originalCreateBookingDocument_ = createBookingDocument_;
+  createBookingDocument_ = function hireAwareCreateBookingDocument_(pack) {
+    activeHirePack_ = pack;
+    try {
+      return originalCreateBookingDocument_(pack);
+    } finally {
+      activeHirePack_ = null;
+    }
+  };
+
+  const originalAppendSection_ = appendSection_;
+  appendSection_ = function hireAwareAppendSection_(body, heading, rows) {
+    if (heading === 'Booking cost' && activeHirePack_) {
+      const pack = activeHirePack_;
+      const stands = normaliseHireStands_(pack.competitionSetup && pack.competitionSetup.stands);
+      const branding = !!(pack.hire && pack.hire.competitionBranding);
+      const hireRows = [
+        ['Setup type', hireSetupLabel_(pack)],
+        ['Competition stands in use', `${stands} stand${stands === 1 ? '' : 's'}`],
+        ['Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No']
+      ];
+
+      if (branding) {
+        hireRows.push(
+          ['Branding cost', 'Additional one-off charge — price confirmed before ordering'],
+          ['Artwork & payment deadline', 'At least 14 days before the competition'],
+          ['Branding after event', brandingAfterEventLabel_(pack.hire.brandingAfterEvent)]
+        );
+      }
+
+      originalAppendSection_(body, 'Hire configuration', hireRows);
+    }
+    return originalAppendSection_(body, heading, rows);
+  };
+
+  const originalBuildInternalEmailHtml_ = buildInternalEmailHtml_;
+  buildInternalEmailHtml_ = function hireAwareBuildInternalEmailHtml_(pack) {
+    const html = originalBuildInternalEmailHtml_(pack);
+    const stands = normaliseHireStands_(pack && pack.competitionSetup && pack.competitionSetup.stands);
+    const branding = !!(pack && pack.hire && pack.hire.competitionBranding);
+    const extraRows = [
+      emailRow_('Setup type', hireSetupLabel_(pack)),
+      emailRow_('Competition stands in use', `${stands} stand${stands === 1 ? '' : 's'}`),
+      emailRow_('Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No')
+    ];
+
+    if (branding) {
+      extraRows.push(
+        emailRow_('Branding after event', brandingAfterEventLabel_(pack.hire.brandingAfterEvent)),
+        emailRow_('Branding cost', 'Additional one-off charge — price confirmed before ordering'),
+        emailRow_('Branding deadline', 'Artwork and payment at least 14 days before competition')
+      );
+    }
+
+    return html.replace('</table>', `${extraRows.join('')}</table>`);
+  };
+
+  this.__waimarinoHireOptionsBackendVersion = HIRE_OPTIONS_VERSION;
+})();
