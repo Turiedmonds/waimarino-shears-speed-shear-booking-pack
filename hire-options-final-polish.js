@@ -1,15 +1,64 @@
 (() => {
   if (window.__waimarinoHireOptionsFinalPolishVersion) return;
-  window.__waimarinoHireOptionsFinalPolishVersion = '1.0.1';
+  window.__waimarinoHireOptionsFinalPolishVersion = '1.0.2';
+
+  const FINAL_TERMS_VERSION = '21 August 2026';
+  const FINAL_APP_VERSION = '1.5.1';
 
   function normaliseStands(value) {
     return Number(value) === 1 ? 1 : 2;
   }
 
   function setupTypeLabel(value) {
-    return value === 'electronics-only'
-      ? 'Electronics & operation on organiser-supplied shearing stand'
-      : 'Full Waimarino Shears stand, electronics & operation';
+    if (value === 'electronics-only') return 'Electronics & operation on organiser-supplied shearing stand';
+    if (value === 'full') return 'Full Waimarino Shears stand, electronics & operation';
+    return '—';
+  }
+
+  function draftHireField(name) {
+    try {
+      const key = typeof STORAGE_KEY === 'undefined'
+        ? 'waimarinoSpeedShearBookingPackDraftV1'
+        : STORAGE_KEY;
+      const raw = localStorage.getItem(key);
+      const saved = raw ? JSON.parse(raw) : null;
+      if (saved?.hire && Object.prototype.hasOwnProperty.call(saved.hire, name)) {
+        return saved.hire[name];
+      }
+    } catch (_) {}
+    return undefined;
+  }
+
+  function ensurePlaceholder(select, text = 'Select an option') {
+    if (!select || select.querySelector('option[value=""]')) return;
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = text;
+    select.insertAdjacentElement('afterbegin', option);
+  }
+
+  function initialiseRequiredSelections() {
+    const setupSelect = document.getElementById('hireSetupType');
+    const brandingSelect = document.getElementById('competitionBranding');
+
+    ensurePlaceholder(setupSelect);
+    ensurePlaceholder(brandingSelect);
+
+    const savedSetup = draftHireField('setupType');
+    if (!['full', 'electronics-only'].includes(savedSetup) && setupSelect) {
+      setupSelect.value = '';
+    }
+
+    const savedBranding = draftHireField('competitionBranding');
+    if (typeof savedBranding !== 'boolean' && brandingSelect) {
+      brandingSelect.value = '';
+    }
+
+    setupSelect?.addEventListener('change', () => {
+      if (setupSelect.value === 'full' && brandingSelect) {
+        brandingSelect.value = '';
+      }
+    });
   }
 
   function patchHireCopy() {
@@ -35,26 +84,40 @@
       spaceParagraphs[0].textContent = spaceParagraphs[0].textContent.replace('our modular stand', 'our stand');
     }
 
+    const setupSelect = document.getElementById('hireSetupType');
+    const setupHelp = setupSelect?.closest('.field')?.querySelector('.help-text');
+    if (setupHelp) {
+      setupHelp.textContent = 'The standard NZ$750 + GST hire fee applies to both options.';
+    }
+
     const brandingWrap = document.getElementById('competitionBrandingWrap');
     if (brandingWrap) {
       document.getElementById('brandingAfterEventWrap')?.remove();
+
+      const brandingHelp = brandingWrap.querySelector('h4 + .help-text');
+      if (brandingHelp) {
+        brandingHelp.innerHTML = 'Available when the Waimarino Shears stand is supplied. This is for your competition or event logo/name only. <strong>Separate sponsor branding panels are not included.</strong>';
+      }
 
       const brandingSelect = document.getElementById('competitionBranding');
       const yesOption = brandingSelect?.querySelector('option[value="yes"]');
       if (yesOption) yesOption.textContent = 'Yes';
 
-      if (!document.getElementById('brandingAdditionalCostNote')) {
-        const note = document.createElement('p');
+      let note = document.getElementById('brandingAdditionalCostNote');
+      if (!note) {
+        note = document.createElement('p');
         note.id = 'brandingAdditionalCostNote';
         note.className = 'help-text';
-        note.innerHTML = '<strong>Custom competition branding panels have an additional one-off cost.</strong>';
         const formGrid = brandingWrap.querySelector('.form-grid');
         formGrid?.insertAdjacentElement('beforebegin', note);
+      }
+      if (note) {
+        note.innerHTML = '<strong>Custom competition branding panels have an additional one-off cost, charged at cost with no markup by Waimarino Shears.</strong>';
       }
 
       const requirements = document.getElementById('brandingRequirements');
       if (requirements) {
-        requirements.innerHTML = 'The final branding price will be confirmed before anything is ordered. Your competition branding and branding payment must be received at least <strong>14 days before the competition</strong>. Send your competition branding to <a href="mailto:Waimarinoshears@gmail.com">Waimarinoshears@gmail.com</a> and quote your Booking Reference.';
+        requirements.innerHTML = 'The final branding cost will be confirmed before anything is ordered. The branding cost will be added as a separate amount to the deposit invoice. Your competition branding and branding payment must be received at least <strong>14 days before the competition</strong>. Send your competition branding to <a href="mailto:Waimarinoshears@gmail.com">Waimarinoshears@gmail.com</a> and quote your Booking Reference.';
       }
     }
 
@@ -73,8 +136,22 @@
       const setupTerm = hireHeading.nextElementSibling;
       const brandingTerm = setupTerm?.nextElementSibling;
       if (brandingTerm && brandingTerm.tagName === 'P') {
-        brandingTerm.innerHTML = '<strong>Optional competition stand branding:</strong> Where the Waimarino Shears stand is supplied, the organiser may request custom panels carrying the competition or event branding. Sponsor branding is not included. Branding is an additional one-off cost. The price will be confirmed before ordering, and the competition branding and branding payment must be received at least 14 days before the competition.';
+        brandingTerm.innerHTML = '<strong>Optional competition stand branding:</strong> Where the Waimarino Shears stand is supplied, the organiser may request custom panels carrying the competition or event branding. Separate sponsor branding panels are not included. Branding is an additional one-off cost and is charged at cost with no markup by Waimarino Shears. The price will be confirmed before ordering. The branding cost will be added as a separate amount to the deposit invoice, and the competition branding and branding payment must be received at least 14 days before the competition. Panels will not be ordered until the branding payment has been received.';
       }
+    }
+
+    const cancellationHeading = [...terms.querySelectorAll('h4')]
+      .find(heading => heading.textContent.trim() === 'Cancellation');
+    const postponementHeading = [...terms.querySelectorAll('h4')]
+      .find(heading => heading.textContent.trim() === 'Postponement');
+    if (cancellationHeading && postponementHeading) {
+      let brandingCancellation = document.getElementById('brandingCancellationTerm');
+      if (!brandingCancellation) {
+        brandingCancellation = document.createElement('p');
+        brandingCancellation.id = 'brandingCancellationTerm';
+      }
+      brandingCancellation.innerHTML = '<strong>Competition branding:</strong> Once custom competition branding panels have been ordered, the branding cost remains payable and is not refundable if the organiser later cancels the event, because the panels are produced specifically for that competition. Any completed panels will be made available to the organiser.';
+      postponementHeading.insertAdjacentElement('beforebegin', brandingCancellation);
     }
 
     const blocks = [];
@@ -122,98 +199,180 @@
     terms.appendChild(fragment);
   }
 
+  function enforceCurrentTermsAcceptance(sourceVersion = null) {
+    if (typeof state === 'undefined' || !state?.booking) return;
+    const previousVersion = sourceVersion || state.booking.termsVersion;
+    if (previousVersion && previousVersion !== FINAL_TERMS_VERSION) {
+      state.booking.termsAccepted = false;
+      state.booking.acceptedBy = '';
+      state.booking.acceptedAt = null;
+      const checkbox = document.getElementById('termsAccepted');
+      if (checkbox) checkbox.checked = false;
+      const acceptedBy = document.getElementById('acceptedByDisplay');
+      const acceptedAt = document.getElementById('acceptedAtDisplay');
+      if (acceptedBy) acceptedBy.textContent = '—';
+      if (acceptedAt) acceptedAt.textContent = '—';
+    }
+    state.booking.termsVersion = FINAL_TERMS_VERSION;
+  }
+
+  function updateTermsVersionDisplay() {
+    enforceCurrentTermsAcceptance();
+    document.querySelectorAll('#reviewContent .review-item').forEach(item => {
+      if (item.querySelector('span')?.textContent.trim() === 'Terms version') {
+        const strong = item.querySelector('strong');
+        if (strong) strong.textContent = FINAL_TERMS_VERSION;
+      }
+    });
+  }
+
   function wrapFunctions() {
-    if (typeof syncStateFromForm === 'function' && !syncStateFromForm.__finalHirePolishWrapped) {
+    if (typeof syncStateFromForm === 'function' && !syncStateFromForm.__finalHirePolishWrappedV2) {
       const original = syncStateFromForm;
       const wrapped = function finalHirePolishSyncStateFromForm() {
         original();
         if (state?.hire) delete state.hire.brandingAfterEvent;
+        if (state?.booking) state.booking.termsVersion = FINAL_TERMS_VERSION;
       };
-      wrapped.__finalHirePolishWrapped = true;
+      wrapped.__finalHirePolishWrappedV2 = true;
       syncStateFromForm = wrapped;
     }
 
-    if (typeof buildPackage === 'function' && !buildPackage.__finalHirePolishWrapped) {
+    if (typeof buildPackage === 'function' && !buildPackage.__finalHirePolishWrappedV2) {
       const original = buildPackage;
       const wrapped = function finalHirePolishBuildPackage(submitted = false) {
         const pack = original(submitted);
-        if (pack?.hire) delete pack.hire.brandingAfterEvent;
-        if (typeof state !== 'undefined' && state?.hire) delete state.hire.brandingAfterEvent;
+        const setupValue = document.getElementById('hireSetupType')?.value || '';
+        const brandingValue = document.getElementById('competitionBranding')?.value || '';
+
+        pack.appVersion = FINAL_APP_VERSION;
+        pack.booking = { ...(pack.booking || {}), termsVersion: FINAL_TERMS_VERSION };
+        pack.hire = pack.hire || {};
+        pack.hire.setupType = setupValue;
+        pack.hire.competitionBranding = setupValue === 'full'
+          ? (brandingValue === 'yes' ? true : brandingValue === 'no' ? false : null)
+          : false;
+        delete pack.hire.brandingAfterEvent;
+
+        if (typeof state !== 'undefined') {
+          if (state.booking) state.booking.termsVersion = FINAL_TERMS_VERSION;
+          if (state.hire) delete state.hire.brandingAfterEvent;
+        }
         return pack;
       };
-      wrapped.__finalHirePolishWrapped = true;
+      wrapped.__finalHirePolishWrappedV2 = true;
       buildPackage = wrapped;
     }
 
-    if (typeof validateForReview === 'function' && !validateForReview.__finalHirePolishWrapped) {
+    if (typeof validateForReview === 'function' && !validateForReview.__finalHirePolishWrappedV2) {
       const original = validateForReview;
       const wrapped = function finalHirePolishValidateForReview() {
-        const warnings = original();
-        return warnings
+        const warnings = original()
           .filter(warning => warning !== 'Choose what should happen to the competition branding panels after the event.')
           .map(warning => warning === 'Competition branding requires at least 14 days before the competition for artwork, payment and production.'
             ? 'Competition branding requires at least 14 days before the competition for branding and payment.'
             : warning);
+
+        const setupValue = document.getElementById('hireSetupType')?.value || '';
+        const brandingValue = document.getElementById('competitionBranding')?.value || '';
+        if (!setupValue) warnings.push('Choose what hire setup will be used.');
+        if (setupValue === 'full' && !brandingValue) {
+          warnings.push('Choose Yes or No for competition stand branding.');
+        }
+        return [...new Set(warnings)];
       };
-      wrapped.__finalHirePolishWrapped = true;
+      wrapped.__finalHirePolishWrappedV2 = true;
       validateForReview = wrapped;
     }
 
-    if (typeof buildReview === 'function' && !buildReview.__finalHirePolishWrapped) {
+    if (typeof buildReview === 'function' && !buildReview.__finalHirePolishWrappedV2) {
       const original = buildReview;
       const wrapped = function finalHirePolishBuildReview() {
         original();
+        updateTermsVersionDisplay();
+
         const section = document.getElementById('hireConfigurationReview');
         if (!section || typeof reviewItem !== 'function') return;
 
-        const branding = state?.hire?.competitionBranding === true;
+        const setupSelect = document.getElementById('hireSetupType');
+        const setupValue = setupSelect ? setupSelect.value : (state?.hire?.setupType || '');
+        const brandingValue = document.getElementById('competitionBranding')?.value || '';
+        const branding = setupValue === 'full'
+          ? (brandingValue === 'yes' || (brandingValue !== 'no' && state?.hire?.competitionBranding === true))
+          : false;
         const stands = normaliseStands(state?.competitionSetup?.stands);
         const rows = [
-          reviewItem('Setup type', setupTypeLabel(state?.hire?.setupType)),
+          reviewItem('Setup type', setupTypeLabel(setupValue)),
           reviewItem('Competition stands in use', `${stands} stand${stands === 1 ? '' : 's'}`),
           reviewItem('Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No')
         ];
         if (branding) {
-          rows.push(reviewItem('Branding cost', 'Additional one-off charge — price confirmed before ordering'));
+          rows.push(reviewItem('Branding cost', 'Additional one-off cost, charged at cost with no markup — price confirmed before ordering'));
+          rows.push(reviewItem('Branding payment', 'Added as a separate amount to the deposit invoice'));
           rows.push(reviewItem('Branding & payment deadline', 'At least 14 days before the competition'));
         }
         section.innerHTML = `<h3>Hire configuration</h3><div class="review-list">${rows.join('')}</div>`;
       };
-      wrapped.__finalHirePolishWrapped = true;
+      wrapped.__finalHirePolishWrappedV2 = true;
       buildReview = wrapped;
     }
 
-    if (typeof buildHumanPackHtml === 'function' && !buildHumanPackHtml.__finalHirePolishWrapped) {
+    if (typeof buildHumanPackHtml === 'function' && !buildHumanPackHtml.__finalHirePolishWrappedV2) {
       const original = buildHumanPackHtml;
       const wrapped = function finalHirePolishHumanPackHtml() {
+        if (typeof state !== 'undefined' && state?.booking) {
+          state.booking.termsVersion = FINAL_TERMS_VERSION;
+        }
         return original()
-          .replace('artwork and payment are required at least 14 days before the competition', 'competition branding and payment are required at least 14 days before the competition');
+          .replaceAll('19 August 2026', FINAL_TERMS_VERSION)
+          .replace('Sponsor branding is not included.', 'Separate sponsor branding panels are not included.')
+          .replace('This is an additional one-off cost; competition branding and payment are required at least 14 days before the competition.',
+            'This is an additional one-off cost, charged at cost with no markup. The branding cost is added as a separate amount to the deposit invoice, and competition branding and payment are required at least 14 days before the competition.');
       };
-      wrapped.__finalHirePolishWrapped = true;
+      wrapped.__finalHirePolishWrappedV2 = true;
       buildHumanPackHtml = wrapped;
     }
 
-    if (typeof loadPackage === 'function' && !loadPackage.__finalHirePolishWrapped) {
+    if (typeof loadPackage === 'function' && !loadPackage.__finalHirePolishWrappedV2) {
       const original = loadPackage;
       const wrapped = function finalHirePolishLoadPackage(pack, notify = true) {
+        const sourceTermsVersion = pack?.booking?.termsVersion || null;
         const result = original(pack, notify);
         if (state?.hire) delete state.hire.brandingAfterEvent;
+        enforceCurrentTermsAcceptance(sourceTermsVersion);
+
+        const setupSelect = document.getElementById('hireSetupType');
+        const brandingSelect = document.getElementById('competitionBranding');
+        ensurePlaceholder(setupSelect);
+        ensurePlaceholder(brandingSelect);
+
+        if (setupSelect) {
+          setupSelect.value = ['full', 'electronics-only'].includes(pack?.hire?.setupType)
+            ? pack.hire.setupType
+            : '';
+        }
+        if (brandingSelect) {
+          brandingSelect.value = typeof pack?.hire?.competitionBranding === 'boolean'
+            ? (pack.hire.competitionBranding ? 'yes' : 'no')
+            : '';
+        }
         return result;
       };
-      wrapped.__finalHirePolishWrapped = true;
+      wrapped.__finalHirePolishWrappedV2 = true;
       loadPackage = wrapped;
     }
   }
 
   function initialise() {
     patchHireCopy();
+    initialiseRequiredSelections();
     patchAndReorderTerms();
     wrapFunctions();
-    if (typeof state !== 'undefined' && state?.hire) delete state.hire.brandingAfterEvent;
+    if (typeof state !== 'undefined') {
+      if (state?.hire) delete state.hire.brandingAfterEvent;
+      enforceCurrentTermsAcceptance();
+    }
 
-    // The existing terms tidy script adds the health/safety and animal-welfare
-    // clauses independently. Re-run the ordering after those clauses have had
-    // time to be inserted so the final customer-facing order stays grouped.
     window.setTimeout(patchAndReorderTerms, 250);
     window.setTimeout(patchAndReorderTerms, 1000);
   }
