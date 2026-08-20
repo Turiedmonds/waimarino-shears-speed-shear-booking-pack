@@ -1,9 +1,12 @@
 (() => {
-  const HIRE_OPTIONS_VERSION = '1.0.1';
+  const HIRE_OPTIONS_VERSION = '1.0.2';
+  const FINAL_TERMS_VERSION_ = '21 August 2026';
+  const FINAL_APP_VERSION_ = '1.5.1';
   let activeHirePack_ = null;
 
-  function normaliseHireSetupType_(value) {
-    return value === 'electronics-only' ? 'electronics-only' : 'full';
+  function normaliseHireSetupType_(value, fallback) {
+    if (value === 'full' || value === 'electronics-only') return value;
+    return fallback;
   }
 
   function normaliseHireStands_(value) {
@@ -11,19 +14,38 @@
   }
 
   function hireSetupLabel_(pack) {
-    return normaliseHireSetupType_(pack && pack.hire && pack.hire.setupType) === 'electronics-only'
+    return pack && pack.hire && pack.hire.setupType === 'electronics-only'
       ? 'Electronics & operation on organiser-supplied shearing stand'
       : 'Full Waimarino Shears stand, electronics & operation';
   }
 
   const originalNormalisePack_ = normalisePack_;
   normalisePack_ = function hireAwareNormalisePack_(pack) {
+    const hadSetupType = !!(pack && pack.hire &&
+      Object.prototype.hasOwnProperty.call(pack.hire, 'setupType'));
+    const incomingSetupType = hadSetupType ? pack.hire.setupType : null;
+    const hadBrandingChoice = !!(pack && pack.hire &&
+      Object.prototype.hasOwnProperty.call(pack.hire, 'competitionBranding'));
+    const incomingBrandingChoice = hadBrandingChoice ? pack.hire.competitionBranding : null;
+
     pack = originalNormalisePack_(pack);
     if (!pack || typeof pack !== 'object') return pack;
 
+    pack.appVersion = FINAL_APP_VERSION_;
+    pack.booking = pack.booking || {};
+    pack.booking.termsVersion = FINAL_TERMS_VERSION_;
+
     pack.hire = pack.hire || {};
-    pack.hire.setupType = normaliseHireSetupType_(pack.hire.setupType);
-    pack.hire.competitionBranding = pack.hire.setupType === 'full' && pack.hire.competitionBranding === true;
+    pack.hire.setupType = hadSetupType
+      ? normaliseHireSetupType_(incomingSetupType, '')
+      : normaliseHireSetupType_(pack.hire.setupType, 'full');
+    if (pack.hire.setupType === 'full') {
+      pack.hire.competitionBranding = hadBrandingChoice
+        ? (incomingBrandingChoice === true ? true : incomingBrandingChoice === false ? false : null)
+        : false;
+    } else {
+      pack.hire.competitionBranding = false;
+    }
     delete pack.hire.brandingAfterEvent;
 
     pack.competitionSetup = pack.competitionSetup || {};
@@ -35,14 +57,20 @@
   validatePack_ = function hireAwareValidatePack_(pack) {
     originalValidatePack_(pack);
 
-    const setupType = normaliseHireSetupType_(pack && pack.hire && pack.hire.setupType);
+    const setupType = pack && pack.hire && pack.hire.setupType;
     if (setupType !== 'full' && setupType !== 'electronics-only') {
-      throw new Error('Hire setup type is invalid.');
+      throw new Error('Choose what hire setup will be used.');
     }
 
     const stands = Number(pack && pack.competitionSetup && pack.competitionSetup.stands);
     if (stands !== 1 && stands !== 2) {
       throw new Error('Competition stands in use must be 1 or 2.');
+    }
+
+    if (setupType === 'full' &&
+        pack.hire.competitionBranding !== true &&
+        pack.hire.competitionBranding !== false) {
+      throw new Error('Choose Yes or No for competition stand branding.');
     }
 
     if (pack.hire && pack.hire.competitionBranding && setupType !== 'full') {
@@ -53,6 +81,7 @@
   const originalBuildTimingImport_ = buildTimingImport_;
   buildTimingImport_ = function hireAwareBuildTimingImport_(pack) {
     const output = originalBuildTimingImport_(pack);
+    output.appVersion = FINAL_APP_VERSION_;
     output.competitionSetup = output.competitionSetup || {};
     output.competitionSetup.stands = normaliseHireStands_(pack && pack.competitionSetup && pack.competitionSetup.stands);
     return output;
@@ -82,7 +111,8 @@
 
       if (branding) {
         hireRows.push(
-          ['Branding cost', 'Additional one-off charge — price confirmed before ordering'],
+          ['Branding cost', 'Additional one-off cost, charged at cost with no markup — price confirmed before ordering'],
+          ['Branding payment', 'Added as a separate amount to the deposit invoice and payable before ordering'],
           ['Branding & payment deadline', 'At least 14 days before the competition']
         );
       }
@@ -105,7 +135,8 @@
 
     if (branding) {
       extraRows.push(
-        emailRow_('Branding cost', 'Additional one-off charge — price confirmed before ordering'),
+        emailRow_('Branding cost', 'Additional one-off cost, charged at cost with no markup — price confirmed before ordering'),
+        emailRow_('Branding payment', 'Added as a separate amount to the deposit invoice and payable before ordering'),
         emailRow_('Branding deadline', 'Competition branding and payment at least 14 days before competition')
       );
     }
