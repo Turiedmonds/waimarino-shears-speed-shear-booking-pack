@@ -1,5 +1,7 @@
 (() => {
   const HIRE_OPTIONS_VERSION = '1.0.2';
+  const FINAL_TERMS_VERSION_ = '21 August 2026';
+  const FINAL_APP_VERSION_ = '1.5.1';
   let activeHirePack_ = null;
 
   function normaliseHireSetupType_(value, fallback) {
@@ -28,6 +30,10 @@
 
     pack = originalNormalisePack_(pack);
     if (!pack || typeof pack !== 'object') return pack;
+
+    pack.appVersion = FINAL_APP_VERSION_;
+    pack.booking = pack.booking || {};
+    pack.booking.termsVersion = FINAL_TERMS_VERSION_;
 
     pack.hire = pack.hire || {};
     pack.hire.setupType = hadSetupType
@@ -75,6 +81,7 @@
   const originalBuildTimingImport_ = buildTimingImport_;
   buildTimingImport_ = function hireAwareBuildTimingImport_(pack) {
     const output = originalBuildTimingImport_(pack);
+    output.appVersion = FINAL_APP_VERSION_;
     output.competitionSetup = output.competitionSetup || {};
     output.competitionSetup.stands = normaliseHireStands_(pack && pack.competitionSetup && pack.competitionSetup.stands);
     return output;
