@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoCleanShearTimeUiVersion) return;
-  window.__waimarinoCleanShearTimeUiVersion = '1.0.0';
+  window.__waimarinoCleanShearTimeUiVersion = '1.0.1';
 
   if (typeof renderEventSection !== 'function' || typeof validateForReview !== 'function' || typeof buildReview !== 'function') return;
 
@@ -109,7 +109,7 @@
       window.clearTimeout(settleTimer);
       settleTimer = window.setTimeout(() => {
         const index = Math.max(0, Math.min(values.length - 1, Math.round(wheel.scrollTop / ITEM_HEIGHT)));
-        selectIndex(index, true, true);
+        selectIndex(index, false, true);
       }, 90);
     }, { passive: true });
 
@@ -133,11 +133,14 @@
     const cleanSelect = section.querySelector('.clean-shear-select');
     const wrap = section.querySelector('.clean-time-wrap');
     const sourceInput = wrap?.querySelector('.clean-time-input');
+    const sourceLabel = wrap?.querySelector('label');
     if (!cleanSelect || !wrap || !sourceInput) return;
 
     section.dataset.cleanTimeUiReady = 'true';
+    if (sourceLabel) sourceLabel.textContent = 'Maximum clean shear time-limit rule';
     sourceInput.classList.add('clean-time-source');
     sourceInput.type = 'hidden';
+    sourceInput.removeAttribute('placeholder');
 
     const existing = parseLimit(sourceInput.value);
     const id = ++pickerCounter;
