@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoHireOptionsEmailVersion) return;
-  window.__waimarinoHireOptionsEmailVersion = '1.0.3';
+  window.__waimarinoHireOptionsEmailVersion = '1.0.4';
 
   const EMAIL = 'Waimarinoshears@gmail.com';
   const TRAVEL_POLICY = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
@@ -11,6 +11,28 @@
       : 'Full Waimarino Shears stand, electronics & operation';
   }
 
+  function parseCleanShearTime(value) {
+    const text = String(value || '').trim();
+    if (!text) return null;
+    let total = null;
+    if (/^\d+$/.test(text)) total = Number.parseInt(text, 10);
+    if (/^\d{1,2}:\d{2}$/.test(text)) {
+      const [minutes, seconds] = text.split(':').map(Number);
+      if (seconds >= 0 && seconds <= 59) total = (minutes * 60) + seconds;
+    }
+    if (!Number.isFinite(total) || total <= 0) return null;
+    return { minutes: Math.floor(total / 60), seconds: total % 60 };
+  }
+
+  function cleanShearTimeLabel(value) {
+    const parsed = parseCleanShearTime(value);
+    if (!parsed) return 'no maximum time limit';
+    const parts = [];
+    if (parsed.minutes) parts.push(`${parsed.minutes} min`);
+    if (parsed.seconds || !parsed.minutes) parts.push(`${parsed.seconds} sec`);
+    return `maximum time ${parts.join(' ')}`;
+  }
+
   function eventSummary(pack) {
     const events = pack.competitionSetup?.events || {};
     const parts = Object.entries(events).map(([name, event]) => {
@@ -18,8 +40,8 @@
         `${round.name}: ${round.sheepPerShearer} sheep per shearer${round.qualifiers == null ? '' : `, ${round.qualifiers} qualify`}`
       ).join(' | ');
       const clean = event.cleanShear
-        ? `Clean shear: Yes${event.cleanShearTimeLimit ? ` (${event.cleanShearTimeLimit})` : ''}; `
-        : '';
+        ? `Clean shear: Yes — ${cleanShearTimeLabel(event.cleanShearTimeLimit)}; `
+        : 'Clean shear: No; ';
       return `${name} — ${clean}Prize placings: ${event.prizePlacings}; ${rounds}`;
     });
     return parts.length ? parts.join('\n') : 'No grades or events selected.';
