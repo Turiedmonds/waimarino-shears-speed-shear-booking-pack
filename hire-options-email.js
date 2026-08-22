@@ -1,8 +1,9 @@
 (() => {
   if (window.__waimarinoHireOptionsEmailVersion) return;
-  window.__waimarinoHireOptionsEmailVersion = '1.0.2';
+  window.__waimarinoHireOptionsEmailVersion = '1.0.3';
 
   const EMAIL = 'Waimarinoshears@gmail.com';
+  const TRAVEL_POLICY = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
 
   function setupTypeLabel(value) {
     return value === 'electronics-only'
@@ -44,6 +45,7 @@
       `Venue: ${pack.booking.venue || '—'}`,
       `Date: ${typeof humanDate === 'function' ? humanDate(pack.booking.competitionDate) : (pack.booking.competitionDate || '—')}`,
       `Start time: ${pack.booking.startTime || '—'}`,
+      `Travel: ${TRAVEL_POLICY}`,
       '',
       `Setup type: ${setupTypeLabel(pack.hire?.setupType)}`,
       `Competition stands in use: ${stands} stand${stands === 1 ? '' : 's'}`,
@@ -52,8 +54,10 @@
 
     if (branding) {
       lines.push(
-        'Branding cost: Additional one-off cost, charged at cost with no markup — price confirmed before ordering',
+        'Branding cost: Supplier actual cost, including GST where applicable, with no markup by Waimarino Shears',
+        'Branding cost evidence: Supplier invoice or other evidence of the actual supplier cost will be provided',
         'Branding payment: Added as a separate amount to the deposit invoice and payable before ordering',
+        'Branding ownership: Once paid for, the panels are the property of the organiser',
         'Branding & payment deadline: At least 14 days before the competition'
       );
     }
