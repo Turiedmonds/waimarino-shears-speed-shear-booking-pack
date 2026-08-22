@@ -15,10 +15,16 @@
         bookingPolicy.src = 'booking-policy-final.js?v=1.0.0';
         bookingPolicy.async = false;
         bookingPolicy.onload = () => {
-          const emailOptions = document.createElement('script');
-          emailOptions.src = 'hire-options-email.js?v=1.0.3';
-          emailOptions.async = false;
-          document.body.appendChild(emailOptions);
+          const cleanShearTimeUi = document.createElement('script');
+          cleanShearTimeUi.src = 'clean-shear-time-ui.js?v=1.0.0';
+          cleanShearTimeUi.async = false;
+          cleanShearTimeUi.onload = () => {
+            const emailOptions = document.createElement('script');
+            emailOptions.src = 'hire-options-email.js?v=1.0.3';
+            emailOptions.async = false;
+            document.body.appendChild(emailOptions);
+          };
+          document.body.appendChild(cleanShearTimeUi);
         };
         document.body.appendChild(bookingPolicy);
       };
