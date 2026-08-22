@@ -3,7 +3,7 @@
   window.__waimarinoBookingPolicyFinalVersion = '1.0.0';
 
   const TERMS_VERSION = '22 August 2026';
-  const APP_VERSION = '1.5.2';
+  const APP_VERSION = '1.5.1';
   const TRAVEL_SHORT = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
 
   function clearOldTermsAcceptance(sourceVersion) {
@@ -158,7 +158,9 @@
       const original = buildHumanPackHtml;
       const wrapped = function bookingPolicyFinalHumanPackHtml() {
         if (typeof state !== 'undefined') syncPolicyState();
-        return original()
+        const html = original();
+        if (typeof state !== 'undefined') syncPolicyState();
+        return html
           .replaceAll('19 August 2026', TERMS_VERSION)
           .replaceAll('21 August 2026', TERMS_VERSION);
       };
