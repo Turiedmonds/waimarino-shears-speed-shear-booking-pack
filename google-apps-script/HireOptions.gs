@@ -1,7 +1,8 @@
 (() => {
-  const HIRE_OPTIONS_VERSION = '1.0.2';
-  const FINAL_TERMS_VERSION_ = '21 August 2026';
+  const HIRE_OPTIONS_VERSION = '1.0.3';
+  const FINAL_TERMS_VERSION_ = '22 August 2026';
   const FINAL_APP_VERSION_ = '1.5.1';
+  const TRAVEL_POLICY_ = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
   let activeHirePack_ = null;
 
   function normaliseHireSetupType_(value, fallback) {
@@ -34,6 +35,12 @@
     pack.appVersion = FINAL_APP_VERSION_;
     pack.booking = pack.booking || {};
     pack.booking.termsVersion = FINAL_TERMS_VERSION_;
+
+    pack.commercial = pack.commercial || {};
+    pack.commercial.travelIncluded = true;
+    pack.commercial.travelIncludedOneWayKm = 200;
+    pack.commercial.travelOrigin = 'Raetihi';
+    pack.commercial.additionalTravelChargeMayApplyBeyondIncludedDistance = true;
 
     pack.hire = pack.hire || {};
     pack.hire.setupType = hadSetupType
@@ -97,29 +104,46 @@
     }
   };
 
+  function replaceRowValue_(rows, label, value) {
+    return (rows || []).map(row => row && row[0] === label ? [label, value] : row);
+  }
+
   const originalAppendSection_ = appendSection_;
   appendSection_ = function hireAwareAppendSection_(body, heading, rows) {
-    if (heading === 'Booking cost' && activeHirePack_) {
-      const pack = activeHirePack_;
-      const stands = normaliseHireStands_(pack.competitionSetup && pack.competitionSetup.stands);
-      const branding = !!(pack.hire && pack.hire.competitionBranding);
-      const hireRows = [
-        ['Setup type', hireSetupLabel_(pack)],
-        ['Competition stands in use', `${stands} stand${stands === 1 ? '' : 's'}`],
-        ['Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No']
-      ];
+    let adjustedRows = rows;
 
-      if (branding) {
-        hireRows.push(
-          ['Branding cost', 'Additional one-off cost, charged at cost with no markup — price confirmed before ordering'],
-          ['Branding payment', 'Added as a separate amount to the deposit invoice and payable before ordering'],
-          ['Branding & payment deadline', 'At least 14 days before the competition']
-        );
+    if (heading === 'Booking cost') {
+      adjustedRows = replaceRowValue_(adjustedRows, 'Travel', TRAVEL_POLICY_);
+
+      if (activeHirePack_) {
+        const pack = activeHirePack_;
+        const stands = normaliseHireStands_(pack.competitionSetup && pack.competitionSetup.stands);
+        const branding = !!(pack.hire && pack.hire.competitionBranding);
+        const hireRows = [
+          ['Setup type', hireSetupLabel_(pack)],
+          ['Competition stands in use', `${stands} stand${stands === 1 ? '' : 's'}`],
+          ['Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No']
+        ];
+
+        if (branding) {
+          hireRows.push(
+            ['Branding cost', 'Supplier actual cost, including GST where applicable, with no markup by Waimarino Shears'],
+            ['Branding cost evidence', 'Supplier invoice or other evidence of the actual supplier cost will be provided'],
+            ['Branding payment', 'Added as a separate amount to the deposit invoice and payable before ordering'],
+            ['Branding ownership', 'Once paid for, the panels are the property of the organiser'],
+            ['Branding & payment deadline', 'At least 14 days before the competition']
+          );
+        }
+
+        originalAppendSection_(body, 'Hire configuration', hireRows);
       }
-
-      originalAppendSection_(body, 'Hire configuration', hireRows);
     }
-    return originalAppendSection_(body, heading, rows);
+
+    if (heading === 'Agreement') {
+      adjustedRows = replaceRowValue_(adjustedRows, 'Terms version', FINAL_TERMS_VERSION_);
+    }
+
+    return originalAppendSection_(body, heading, adjustedRows);
   };
 
   const originalBuildInternalEmailHtml_ = buildInternalEmailHtml_;
@@ -128,6 +152,7 @@
     const stands = normaliseHireStands_(pack && pack.competitionSetup && pack.competitionSetup.stands);
     const branding = !!(pack && pack.hire && pack.hire.competitionBranding);
     const extraRows = [
+      emailRow_('Travel policy', TRAVEL_POLICY_),
       emailRow_('Setup type', hireSetupLabel_(pack)),
       emailRow_('Competition stands in use', `${stands} stand${stands === 1 ? '' : 's'}`),
       emailRow_('Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No')
@@ -135,8 +160,10 @@
 
     if (branding) {
       extraRows.push(
-        emailRow_('Branding cost', 'Additional one-off cost, charged at cost with no markup — price confirmed before ordering'),
+        emailRow_('Branding cost', 'Supplier actual cost, including GST where applicable, with no markup by Waimarino Shears'),
+        emailRow_('Branding cost evidence', 'Supplier invoice or other evidence of the actual supplier cost will be provided'),
         emailRow_('Branding payment', 'Added as a separate amount to the deposit invoice and payable before ordering'),
+        emailRow_('Branding ownership', 'Once paid for, the panels are the property of the organiser'),
         emailRow_('Branding deadline', 'Competition branding and payment at least 14 days before competition')
       );
     }
