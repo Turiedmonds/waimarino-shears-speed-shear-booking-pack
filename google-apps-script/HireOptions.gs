@@ -1,5 +1,5 @@
 (() => {
-  const HIRE_OPTIONS_VERSION = '1.0.3';
+  const HIRE_OPTIONS_VERSION = '1.0.4';
   const FINAL_TERMS_VERSION_ = '22 August 2026';
   const FINAL_APP_VERSION_ = '1.5.1';
   const TRAVEL_POLICY_ = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
@@ -18,6 +18,43 @@
     return pack && pack.hire && pack.hire.setupType === 'electronics-only'
       ? 'Electronics & operation on organiser-supplied shearing stand'
       : 'Full Waimarino Shears stand, electronics & operation';
+  }
+
+  function parseCleanShearTime_(value) {
+    const text = String(value || '').trim();
+    if (!text) return null;
+    let total = null;
+    if (/^\d+$/.test(text)) total = Number.parseInt(text, 10);
+    if (/^\d{1,2}:\d{2}$/.test(text)) {
+      const parts = text.split(':').map(Number);
+      const minutes = parts[0];
+      const seconds = parts[1];
+      if (Number.isFinite(minutes) && Number.isFinite(seconds) && seconds >= 0 && seconds <= 59) {
+        total = (minutes * 60) + seconds;
+      }
+    }
+    if (!Number.isFinite(total) || total <= 0) return null;
+    return { minutes: Math.floor(total / 60), seconds: total % 60 };
+  }
+
+  function cleanShearTimeLabel_(value) {
+    const parsed = parseCleanShearTime_(value);
+    if (!parsed) return 'no maximum time limit';
+    const parts = [];
+    if (parsed.minutes) parts.push(`${parsed.minutes} min`);
+    if (parsed.seconds || !parsed.minutes) parts.push(`${parsed.seconds} sec`);
+    return `maximum time ${parts.join(' ')}`;
+  }
+
+  function cleanShearEmailSummary_(pack) {
+    const events = pack && pack.competitionSetup && pack.competitionSetup.events || {};
+    const parts = [];
+    Object.keys(events).forEach(grade => {
+      const event = events[grade] || {};
+      if (!event.cleanShear) return;
+      parts.push(`${grade}: ${cleanShearTimeLabel_(event.cleanShearTimeLimit)}`);
+    });
+    return parts.length ? parts.join('; ') : 'None';
   }
 
   const originalNormalisePack_ = normalisePack_;
@@ -83,6 +120,15 @@
     if (pack.hire && pack.hire.competitionBranding && setupType !== 'full') {
       throw new Error('Competition stand branding is only available when the Waimarino Shears stand is supplied.');
     }
+
+    const events = pack && pack.competitionSetup && pack.competitionSetup.events || {};
+    Object.keys(events).forEach(grade => {
+      const event = events[grade] || {};
+      const rawLimit = String(event.cleanShearTimeLimit || '').trim();
+      if (event.cleanShear && rawLimit && !parseCleanShearTime_(rawLimit)) {
+        throw new Error(`${grade}: clean shear maximum time is invalid.`);
+      }
+    });
   };
 
   const originalBuildTimingImport_ = buildTimingImport_;
@@ -146,6 +192,15 @@
     return originalAppendSection_(body, heading, adjustedRows);
   };
 
+  const originalAppendEvent_ = appendEvent_;
+  appendEvent_ = function cleanShearAwareAppendEvent_(parent, name, event) {
+    if (!event || !event.cleanShear) return originalAppendEvent_(parent, name, event);
+    const adjusted = Object.assign({}, event, {
+      cleanShearTimeLimit: cleanShearTimeLabel_(event.cleanShearTimeLimit)
+    });
+    return originalAppendEvent_(parent, name, adjusted);
+  };
+
   const originalBuildInternalEmailHtml_ = buildInternalEmailHtml_;
   buildInternalEmailHtml_ = function hireAwareBuildInternalEmailHtml_(pack) {
     const html = originalBuildInternalEmailHtml_(pack);
@@ -155,6 +210,7 @@
       emailRow_('Travel policy', TRAVEL_POLICY_),
       emailRow_('Setup type', hireSetupLabel_(pack)),
       emailRow_('Competition stands in use', `${stands} stand${stands === 1 ? '' : 's'}`),
+      emailRow_('Clean shear', cleanShearEmailSummary_(pack)),
       emailRow_('Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No')
     ];
 
