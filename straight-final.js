@@ -19,10 +19,16 @@
           cleanShearTimeUi.src = 'clean-shear-time-ui.js?v=1.0.1';
           cleanShearTimeUi.async = false;
           cleanShearTimeUi.onload = () => {
-            const emailOptions = document.createElement('script');
-            emailOptions.src = 'hire-options-email.js?v=1.0.4';
-            emailOptions.async = false;
-            document.body.appendChild(emailOptions);
+            const boardJudgeHelp = document.createElement('script');
+            boardJudgeHelp.src = 'board-judge-help.js?v=1.0.0';
+            boardJudgeHelp.async = false;
+            boardJudgeHelp.onload = () => {
+              const emailOptions = document.createElement('script');
+              emailOptions.src = 'hire-options-email.js?v=1.0.4';
+              emailOptions.async = false;
+              document.body.appendChild(emailOptions);
+            };
+            document.body.appendChild(boardJudgeHelp);
           };
           document.body.appendChild(cleanShearTimeUi);
         };
