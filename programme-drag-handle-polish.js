@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '1.4.1';
+  const VERSION = '1.4.2';
   let dragState = null;
 
   const style = document.createElement('style');
@@ -238,7 +238,7 @@
   }
 
   const straightFinalScript = document.createElement('script');
-  straightFinalScript.src = 'straight-final.js?v=1.0.1';
+  straightFinalScript.src = 'straight-final.js?v=1.0.2';
   straightFinalScript.async = false;
   document.body.appendChild(straightFinalScript);
 
