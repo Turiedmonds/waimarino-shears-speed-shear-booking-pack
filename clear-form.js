@@ -39,6 +39,7 @@
     button.title = 'Clear the information saved in this browser and return to a blank form.';
     button.addEventListener('click', clearForm);
     actions.appendChild(button);
+    actions.classList.remove('hidden');
   }
 
   const PROGRAMME_EMPTY_GUIDANCE = 'Select one or more grades or events above to generate a suggested Programme of Events.';
