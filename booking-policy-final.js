@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoBookingPolicyLoaderVersion) return;
-  window.__waimarinoBookingPolicyLoaderVersion = '1.1.1';
+  window.__waimarinoBookingPolicyLoaderVersion = '1.2.0';
 
   function loadScript(src, id, onload) {
     if (document.getElementById(id)) {
@@ -16,6 +16,8 @@
   }
 
   loadScript('booking-policy-final-core.js?v=1.0.0', 'bookingPolicyFinalCoreScript', () => {
-    loadScript('competition-contact.js?v=1.0.0', 'competitionContactScript', null);
+    loadScript('competition-contact.js?v=1.0.0', 'competitionContactScript', () => {
+      loadScript('multi-booking-drafts.js?v=1.0.0', 'multiBookingDraftsScript', null);
+    });
   });
 })();
