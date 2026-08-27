@@ -28,7 +28,7 @@
               cleanShearTimeUi.async = false;
               cleanShearTimeUi.onload = () => {
                 const boardJudgeHelp = document.createElement('script');
-                boardJudgeHelp.src = 'board-judge-help.js?v=1.0.0';
+                boardJudgeHelp.src = 'board-judge-help.js?v=1.1.0';
                 boardJudgeHelp.async = false;
                 boardJudgeHelp.onload = () => {
                   const emailOptions = document.createElement('script');
