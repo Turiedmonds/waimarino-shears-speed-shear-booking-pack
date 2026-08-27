@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '1.0.0';
+  const VERSION = '1.0.1';
   if (window.__waimarinoLayoutSpaceTermsTidyVersion) return;
   window.__waimarinoLayoutSpaceTermsTidyVersion = VERSION;
 
@@ -17,7 +17,7 @@
     if (paragraphs.length < 3) return false;
 
     paragraphs[1].textContent = 'The stand is 4.8 m wide from side to side. The shearing board itself is 1.8 m deep from front to back. The catching-pen fencing extends a further 1.1 m behind the board, making the overall depth 2.9 m from the front edge of the shearing board to the rear catching-pen fence.';
-    paragraphs[2].textContent = 'Additional room is required around or near the stand for safe access and for the timing-system operating area. The operating area needs to be within suitable close proximity to the stand, but does not need to be directly beside it.';
+    paragraphs[2].textContent = 'Additional space is required around or near the stand for safe access and for the timing-system operating area. The operating area needs to be within suitable close proximity to the stand, but does not need to be directly beside it.';
     return true;
   }
 
@@ -64,70 +64,10 @@
     return true;
   }
 
-  function paragraphAfter(heading) {
-    let element = heading?.nextElementSibling || null;
-    while (element && element.tagName !== 'P' && element.tagName !== 'H4') element = element.nextElementSibling;
-    return element?.tagName === 'P' ? element : null;
-  }
-
-  function upsertParagraph(id, html) {
-    let paragraph = document.getElementById(id);
-    if (!paragraph) {
-      paragraph = document.createElement('p');
-      paragraph.id = id;
-    }
-    paragraph.innerHTML = html;
-    return paragraph;
-  }
-
-  function upsertHeading(id, text) {
-    let heading = document.getElementById(id);
-    if (!heading) {
-      heading = document.createElement('h4');
-      heading.id = id;
-    }
-    heading.textContent = text;
-    return heading;
-  }
-
   function patchHireTerms() {
-    const terms = document.querySelector('.terms-content');
-    if (!terms) return false;
-
-    const equipmentHeading = [...terms.querySelectorAll('h4')]
-      .find(heading => heading.textContent.trim() === 'Equipment and operating conditions');
-    const competitionHeading = [...terms.querySelectorAll('h4')]
-      .find(heading => heading.textContent.trim() === 'Competition operation');
-    const privacyHeading = document.getElementById('privacyDataUseHeading') || [...terms.querySelectorAll('h4')]
-      .find(heading => heading.textContent.trim() === 'Privacy and use of information');
-    if (!equipmentHeading || !competitionHeading || !privacyHeading) return false;
-
-    const existingEquipmentFirstParagraph = paragraphAfter(equipmentHeading);
-    const maintenance = upsertParagraph(
-      'equipmentConditionMaintenanceTerm',
-      '<strong>Condition and maintenance of supplied equipment:</strong> Waimarino Shears Incorporated will take reasonable care before each hire to inspect, service and maintain the speed shear stand, shearing plants, timing equipment and other equipment it supplies so that, so far as reasonably practicable, the equipment is in a safe and serviceable condition for its intended use. Known faults identified through previous use or normal pre-hire checks will be addressed before the equipment is supplied where reasonably practicable.'
-    );
-    if (existingEquipmentFirstParagraph && maintenance !== existingEquipmentFirstParagraph.previousElementSibling) {
-      equipmentHeading.insertAdjacentElement('afterend', maintenance);
-    }
-
-    const healthHeading = upsertHeading('healthSafetyAccessHeading', 'Health, safety and access');
-    const healthTerm = upsertParagraph(
-      'healthSafetyAccessTerm',
-      'The organiser is responsible, to the extent of its influence and control, for managing health and safety matters relating to the venue and conduct of the event. This includes providing safe access to and around the speed shear stand, managing stairs, staging and accessways, controlling crowds and event personnel, and taking reasonable steps to prevent unauthorised, intoxicated or otherwise unsafe persons from accessing or using the stand or supplied equipment. Waimarino Shears Incorporated is not responsible for injury, loss or damage caused by venue hazards, event management, participant conduct or other matters outside its reasonable influence or control. <strong>Nothing in these terms transfers or excludes any health and safety duty or other liability that cannot lawfully be transferred or excluded.</strong>'
-    );
-    competitionHeading.insertAdjacentElement('beforebegin', healthHeading);
-    healthHeading.insertAdjacentElement('afterend', healthTerm);
-
-    const animalHeading = upsertHeading('animalWelfareHeading', 'Animal welfare');
-    const animalTerm = upsertParagraph(
-      'animalWelfareTerm',
-      'The organiser is responsible, to the extent of its influence and control, for animal welfare and animal handling at the event and for ensuring competitors, sheep-handling personnel and other relevant event personnel comply with applicable animal-welfare requirements and competition rules. The organiser must take reasonable steps to ensure animals are handled by suitably competent and authorised people. Waimarino Shears Incorporated provides the speed shear stand and timing service and does not direct or control the handling or treatment of animals. Waimarino Shears Incorporated is not responsible for harm to an animal caused by a competitor, the organiser, its staff or other event personnel, except to the extent Waimarino Shears Incorporated is responsible at law for its own acts or omissions or the condition of equipment it supplies.'
-    );
-    privacyHeading.insertAdjacentElement('beforebegin', animalHeading);
-    animalHeading.insertAdjacentElement('afterend', animalTerm);
-
-    return true;
+    // The current Terms now live in the initial HTML and booking-policy-final.js.
+    // This compatibility layer must not replace them with older wording.
+    return Boolean(document.querySelector('.terms-content'));
   }
 
   function patchHumanPackSpaceSummary() {
