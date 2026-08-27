@@ -5,7 +5,7 @@ const SETTINGS = {
   driveFolderName: 'Waimarino Speed Shear Bookings',
   logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
   brandRed: '#EB1D27',
-  termsEffectiveLabel: '19 August 2026',
+  termsEffectiveLabel: '28 August 2026',
   currentAppVersion: '1.5.0',
   timingImportSchemaVersion: 2
 };
@@ -24,7 +24,10 @@ function doPost(e) {
 
     const files = buildBookingFiles_(pack);
     saveBookingFiles_(files);
-    sendInternalBookingEmail_(pack, files);
+
+    const entryManagerHandoff = entryManagerHandoffForBooking_(pack);
+
+    sendInternalBookingEmail_(pack, files, entryManagerHandoff);
     sendOrganiserConfirmation_(pack, files.pdf);
 
     return jsonResponse_({
@@ -33,7 +36,10 @@ function doPost(e) {
     });
   } catch (error) {
     console.error(error);
-    return jsonResponse_({ ok: false, error: String(error && error.message || error) });
+    return jsonResponse_({
+      ok: false,
+      error: String(error && error.message || error)
+    });
   }
 }
 
@@ -430,15 +436,20 @@ function getOrCreateFolder_(name) {
   return existing.hasNext() ? existing.next() : DriveApp.createFolder(name);
 }
 
-function sendInternalBookingEmail_(pack, files) {
+function sendInternalBookingEmail_(pack, files, entryManagerHandoff) {
   const reference = pack.identity && pack.identity.bookingReference || '';
   const subject = `New Speed Shear Booking Request — ${reference} — ${pack.booking.competitionName}`;
-  const html = buildInternalEmailHtml_(pack);
+  const html = buildInternalEmailHtml_(pack, entryManagerHandoff);
+
+  const entryManagerStatus =
+    entryManagerHandoff && entryManagerHandoff.ok === true
+      ? ' Entry Manager competition record created successfully.'
+      : ' Entry Manager setup needs attention.';
 
   MailApp.sendEmail({
     to: SETTINGS.receiverEmail,
     subject,
-    body: `New booking request received for ${pack.booking.competitionName}. Booking Reference: ${reference}. The PDF booking pack and timing-system import file are attached.`,
+    body: `New booking request received for ${pack.booking.competitionName}. Booking Reference: ${reference}. The PDF booking pack and timing-system import file are attached.${entryManagerStatus}`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: pack.booking.email,
@@ -478,7 +489,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
   });
 }
 
-function buildInternalEmailHtml_(pack) {
+function buildInternalEmailHtml_(pack, entryManagerHandoff) {
   const judging = pack.competitionSetup && pack.competitionSetup.judging || {};
   return `
     <div style="font-family:Arial,sans-serif;color:#111;max-width:720px">
@@ -499,6 +510,9 @@ function buildInternalEmailHtml_(pack) {
         ${emailRow_('Accepted by', pack.booking.acceptedBy)}
         ${emailRow_('Terms version', SETTINGS.termsEffectiveLabel)}
       </table>
+
+      ${entryManagerInternalEmailBlock_(entryManagerHandoff)}
+
       <p style="margin-top:18px"><strong>Status:</strong> Booking request received — awaiting review and deposit invoice.</p>
     </div>`;
 }
