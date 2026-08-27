@@ -4,7 +4,7 @@
   core.async = false;
   core.onload = () => {
     const initialCopySync = document.createElement('script');
-    initialCopySync.src = 'initial-copy-sync.js?v=1.0.0';
+    initialCopySync.src = 'initial-copy-sync.js?v=1.0.1';
     initialCopySync.async = false;
     initialCopySync.onload = () => {
       const hireOptions = document.createElement('script');
