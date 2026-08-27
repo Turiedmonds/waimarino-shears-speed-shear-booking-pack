@@ -1,6 +1,7 @@
 (() => {
-  if (window.__waimarinoBoardJudgeHelpVersion) return;
-  window.__waimarinoBoardJudgeHelpVersion = '1.1.0';
+  const VERSION = '1.1.0';
+  if (window.__waimarinoBoardJudgeHelpVersion === VERSION) return;
+  window.__waimarinoBoardJudgeHelpVersion = VERSION;
 
   const HELP_TEXT = 'A Board judge monitors competitors on the shearing board for plucking after time has stopped, early starts and false starts.';
   const PLACEHOLDER_TEXT = 'Select an option';
@@ -15,6 +16,7 @@
   }
 
   function ensurePlaceholder(select) {
+    if (!select) return;
     let placeholder = [...select.options].find(option => option.value === '');
     if (!placeholder) {
       placeholder = document.createElement('option');
