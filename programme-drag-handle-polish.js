@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '1.4.0';
+  const VERSION = '1.4.1';
   let dragState = null;
 
   const style = document.createElement('style');
@@ -238,12 +238,12 @@
   }
 
   const straightFinalScript = document.createElement('script');
-  straightFinalScript.src = 'straight-final.js?v=1.0.0';
+  straightFinalScript.src = 'straight-final.js?v=1.0.1';
   straightFinalScript.async = false;
   document.body.appendChild(straightFinalScript);
 
   const layoutSpaceTermsScript = document.createElement('script');
-  layoutSpaceTermsScript.src = 'layout-space-and-terms-tidy.js?v=1.0.0';
+  layoutSpaceTermsScript.src = 'layout-space-and-terms-tidy.js?v=1.0.1';
   layoutSpaceTermsScript.async = false;
   document.body.appendChild(layoutSpaceTermsScript);
 
