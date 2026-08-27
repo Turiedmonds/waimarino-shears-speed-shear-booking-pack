@@ -3,6 +3,29 @@ const ENTRY_MANAGER_HANDOFF_SETTINGS = {
   secretProperty: 'ENTRY_MANAGER_SHARED_SECRET'
 };
 
+function entryManagerCompetitionContact_(pack) {
+  const booking = pack && pack.booking || {};
+  const entries = pack && pack.entries || {};
+  const selected = entries.competitorContact && typeof entries.competitorContact === 'object'
+    ? entries.competitorContact
+    : {};
+  const useBookingContact = selected.useBookingContact !== false;
+
+  if (useBookingContact) {
+    return {
+      name: String(booking.contactPerson || '').trim(),
+      email: String(booking.email || '').trim(),
+      phone: String(booking.phone || '').trim()
+    };
+  }
+
+  return {
+    name: String(selected.name || '').trim(),
+    email: String(selected.email || '').trim(),
+    phone: String(selected.phone || '').trim()
+  };
+}
+
 function entryManagerHandoffForBooking_(pack) {
   const properties = PropertiesService.getScriptProperties();
   const endpoint = String(properties.getProperty(ENTRY_MANAGER_HANDOFF_SETTINGS.endpointProperty) || '').trim();
@@ -17,6 +40,7 @@ function entryManagerHandoffForBooking_(pack) {
 
   const setup = pack && pack.competitionSetup || {};
   const booking = pack && pack.booking || {};
+  const competitionContact = entryManagerCompetitionContact_(pack);
   const payload = {
     type: 'entry_manager_competition_setup',
     sharedSecret,
@@ -27,9 +51,9 @@ function entryManagerHandoffForBooking_(pack) {
       venue: String(booking.venue || '')
     },
     organiser: {
-      name: String(booking.contactPerson || ''),
-      email: String(booking.email || ''),
-      phone: String(booking.phone || '')
+      name: competitionContact.name,
+      email: competitionContact.email,
+      phone: competitionContact.phone
     },
     competitionSetup: {
       events: JSON.parse(JSON.stringify(setup.events || {})),
@@ -86,7 +110,7 @@ function entryManagerInternalEmailBlock_(handoff) {
   return `
     <div style="border-left:5px solid #169447;background:#eefaf2;padding:12px 14px;margin:18px 0">
       <strong>Entry Manager competition record created.</strong><br>
-      The organiser details, grades/events and confirmed Programme of Events have already been loaded.<br><br>
+      The competition contact details, grades/events and confirmed Programme of Events have already been loaded.<br><br>
       <strong>Private Entry Manager:</strong><br>
       <a href="${escapeHtml_(handoff.entryManagerUrl)}">${escapeHtml_(handoff.entryManagerUrl)}</a><br><br>
       <strong>Public competitor entry:</strong><br>
