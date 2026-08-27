@@ -1,18 +1,24 @@
 (() => {
   if (window.__waimarinoBoardJudgeHelpVersion) return;
-  window.__waimarinoBoardJudgeHelpVersion = '1.0.0';
+  window.__waimarinoBoardJudgeHelpVersion = '1.0.1';
+
+  const HELP_TEXT = 'A Board judge monitors competitors on the shearing board for plucking after time has stopped, early starts and false starts.';
 
   function installBoardJudgeHelp() {
     const select = document.getElementById('hasBoardJudge');
     const field = select?.closest('.field');
-    if (!select || !field || document.getElementById('boardJudgeHelpText')) return Boolean(document.getElementById('boardJudgeHelpText'));
+    if (!select || !field) return false;
 
-    const help = document.createElement('p');
-    help.id = 'boardJudgeHelpText';
-    help.className = 'help-text';
-    help.textContent = 'A Board judge monitors the shearing board for events such as early starts, false starts and plucking after time.';
-    help.style.marginBottom = '0';
-    select.insertAdjacentElement('afterend', help);
+    let help = document.getElementById('boardJudgeHelpText');
+    if (!help) {
+      help = document.createElement('p');
+      help.id = 'boardJudgeHelpText';
+      help.className = 'help-text';
+      help.style.marginBottom = '0';
+      select.insertAdjacentElement('afterend', help);
+    }
+
+    help.textContent = HELP_TEXT;
     return true;
   }
 
