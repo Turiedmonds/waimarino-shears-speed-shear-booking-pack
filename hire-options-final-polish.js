@@ -1,8 +1,8 @@
 (() => {
   if (window.__waimarinoHireOptionsFinalPolishVersion) return;
-  window.__waimarinoHireOptionsFinalPolishVersion = '1.0.2';
+  window.__waimarinoHireOptionsFinalPolishVersion = '1.0.3';
 
-  const FINAL_TERMS_VERSION = '21 August 2026';
+  const FINAL_TERMS_VERSION = '22 August 2026';
   const FINAL_APP_VERSION = '1.5.1';
 
   function normaliseStands(value) {
@@ -113,12 +113,12 @@
         formGrid?.insertAdjacentElement('beforebegin', note);
       }
       if (note) {
-        note.innerHTML = '<strong>Custom competition branding panels have an additional one-off cost, charged at cost with no markup by Waimarino Shears.</strong>';
+        note.innerHTML = '<strong>Custom competition branding panels have an additional one-off cost, charged at the supplier\'s actual cost, including GST where applicable, with no markup by Waimarino Shears.</strong>';
       }
 
       const requirements = document.getElementById('brandingRequirements');
       if (requirements) {
-        requirements.innerHTML = 'The final branding cost will be confirmed before anything is ordered. The branding cost will be added as a separate amount to the deposit invoice. Your competition branding and branding payment must be received at least <strong>14 days before the competition</strong>. Send your competition branding to <a href="mailto:Waimarinoshears@gmail.com">Waimarinoshears@gmail.com</a> and quote your Booking Reference.';
+        requirements.innerHTML = 'Waimarino Shears arranges the panels on the organiser\'s behalf. The final supplier cost will be confirmed before anything is ordered, and a copy of the supplier invoice or other evidence of the actual supplier cost will be provided. The branding cost will be added as a separate amount to the deposit invoice and must be paid before the panels are ordered. Your competition branding and branding payment must be received at least <strong>14 days before the competition</strong>. Once paid for, the panels are the property of the organiser. Send your competition branding to <a href="mailto:Waimarinoshears@gmail.com">Waimarinoshears@gmail.com</a> and quote your Booking Reference.';
       }
     }
 
@@ -137,7 +137,7 @@
       const setupTerm = hireHeading.nextElementSibling;
       const brandingTerm = setupTerm?.nextElementSibling;
       if (brandingTerm && brandingTerm.tagName === 'P') {
-        brandingTerm.innerHTML = '<strong>Optional competition stand branding:</strong> Where the Waimarino Shears stand is supplied, the organiser may request custom panels carrying the competition or event branding. Separate sponsor branding panels are not included. Branding is an additional one-off cost and is charged at cost with no markup by Waimarino Shears. The price will be confirmed before ordering. The branding cost will be added as a separate amount to the deposit invoice, and the competition branding and branding payment must be received at least 14 days before the competition. Panels will not be ordered until the branding payment has been received.';
+        brandingTerm.innerHTML = '<strong>Optional competition stand branding:</strong> When the Waimarino Shears stand is supplied, the organiser may request custom panels carrying the competition or event branding. Separate sponsor branding panels are not included. The panels are charged at the supplier\'s actual cost, with no markup by Waimarino Shears. The organiser will be given a copy of the supplier invoice, or other evidence of the actual supplier cost, and the amount charged will include GST where applicable. The branding cost will be added as a separate amount to the deposit invoice and must be paid before the panels are ordered. Final competition branding and payment must be received at least 14 days before the competition. Once the branding cost has been paid, the panels are the property of the organiser.';
       }
     }
 
@@ -151,7 +151,7 @@
         brandingCancellation = document.createElement('p');
         brandingCancellation.id = 'brandingCancellationTerm';
       }
-      brandingCancellation.innerHTML = '<strong>Competition branding:</strong> Once custom competition branding panels have been ordered, the branding cost remains payable and is not refundable if the organiser later cancels the event, because the panels are produced specifically for that competition. Any completed panels will be made available to the organiser.';
+      brandingCancellation.innerHTML = '<strong>Competition branding:</strong> Once custom competition branding panels have been ordered, the branding cost is not refundable if the organiser later cancels the event because the panels are produced specifically for that competition. The panels remain the property of the organiser and any completed panels will be made available to them.';
       postponementHeading.insertAdjacentElement('beforebegin', brandingCancellation);
     }
 
@@ -308,8 +308,10 @@
           reviewItem('Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No')
         ];
         if (branding) {
-          rows.push(reviewItem('Branding cost', 'Additional one-off cost, charged at cost with no markup — price confirmed before ordering'));
-          rows.push(reviewItem('Branding payment', 'Added as a separate amount to the deposit invoice'));
+          rows.push(reviewItem('Branding cost', 'Supplier actual cost, including GST where applicable, with no markup by Waimarino Shears'));
+          rows.push(reviewItem('Branding cost evidence', 'Supplier invoice or other evidence of the actual supplier cost will be provided'));
+          rows.push(reviewItem('Branding payment', 'Added as a separate amount to the deposit invoice and payable before ordering'));
+          rows.push(reviewItem('Branding ownership', 'Once paid for, the panels are the property of the organiser'));
           rows.push(reviewItem('Branding & payment deadline', 'At least 14 days before the competition'));
         }
         section.innerHTML = `<h3>Hire configuration</h3><div class="review-list">${rows.join('')}</div>`;
@@ -326,9 +328,10 @@
         }
         return original()
           .replaceAll('19 August 2026', FINAL_TERMS_VERSION)
+          .replaceAll('21 August 2026', FINAL_TERMS_VERSION)
           .replace('Sponsor branding is not included.', 'Separate sponsor branding panels are not included.')
           .replace('This is an additional one-off cost; competition branding and payment are required at least 14 days before the competition.',
-            'This is an additional one-off cost, charged at cost with no markup. The branding cost is added as a separate amount to the deposit invoice, and competition branding and payment are required at least 14 days before the competition.');
+            'The panels are charged at the supplier\'s actual cost, including GST where applicable, with no markup by Waimarino Shears. Supplier cost evidence will be provided. The branding cost is added as a separate amount to the deposit invoice and must be paid before ordering. Once paid for, the panels are the property of the organiser. Competition branding and payment are required at least 14 days before the competition.');
       };
       wrapped.__finalHirePolishWrappedV2 = true;
       buildHumanPackHtml = wrapped;
