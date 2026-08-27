@@ -16,7 +16,7 @@
         finalPolish.async = false;
         finalPolish.onload = () => {
           const bookingPolicy = document.createElement('script');
-          bookingPolicy.src = 'booking-policy-final.js?v=1.0.0';
+          bookingPolicy.src = 'booking-policy-final.js?v=1.2.0';
           bookingPolicy.async = false;
           bookingPolicy.onload = () => {
             const bookingDateRules = document.createElement('script');
