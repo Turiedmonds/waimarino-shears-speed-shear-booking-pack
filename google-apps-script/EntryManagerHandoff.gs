@@ -67,8 +67,28 @@ function createEntryManagerForBooking_(pack) {
   return body;
 }
 
+function safeCreateEntryManagerForBooking_(pack) {
+  try {
+    return createEntryManagerForBooking_(pack);
+  } catch (error) {
+    console.error('Entry Manager handoff failed:', error);
+    return {
+      ok: false,
+      failed: true,
+      reason: String(error && error.message || error)
+    };
+  }
+}
+
 function entryManagerInternalEmailBlock_(handoff) {
-  if (!handoff || !handoff.entryManagerUrl) return '';
+  if (!handoff) return '';
+  if (handoff.failed) {
+    return '<div style="border-left:5px solid #a26100;background:#fff8e8;padding:12px 14px;margin:18px 0">' +
+      '<strong>Entry Manager needs attention</strong><br>' +
+      'The booking request was received normally, but the Entry Manager could not be prepared automatically. The booking itself has not failed.' +
+      '</div>';
+  }
+  if (!handoff.entryManagerUrl) return '';
   const competitorLink = handoff.competitorEntryUrl
     ? '<br><br><strong>Public competitor entry link</strong><br><a href="' + escapeHtml_(handoff.competitorEntryUrl) + '">Open Public Competitor Entry Form</a><br><span style="color:#666">This can be shared with competitors after the booking is confirmed.</span>'
     : '';
@@ -81,13 +101,15 @@ function entryManagerInternalEmailBlock_(handoff) {
 }
 
 /*
-When deployment is ready, the booking receiver integration is intentionally small:
+When deployment is ready, the Booking Receiver integration should use the safe wrapper:
 
 1. Existing flow assigns Booking Reference first.
 2. Call:
-     const entryManager = createEntryManagerForBooking_(pack);
-3. Add entryManagerInternalEmailBlock_(entryManager) to the INTERNAL Waimarino Shears email only.
-4. Do not add either link to sendOrganiserConfirmation_.
+     const entryManager = safeCreateEntryManagerForBooking_(pack);
+3. Continue creating/saving/sending the booking regardless of the Entry Manager result.
+4. Add entryManagerInternalEmailBlock_(entryManager) to the INTERNAL Waimarino Shears email only.
+5. Do not add either link to sendOrganiserConfirmation_.
 
-Payment controls when Waimarino Shears releases the already-prepared manager/public-entry links; payment does not create/configure the Entry Manager.
+This means an Entry Manager outage can never block the booking request itself.
+Payment controls when Waimarino Shears releases the already-prepared links; payment does not create/configure the Entry Manager.
 */
