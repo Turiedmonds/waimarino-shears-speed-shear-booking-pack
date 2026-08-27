@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '1.4.2';
+  const VERSION = '1.4.3';
   let dragState = null;
 
   const style = document.createElement('style');
@@ -82,6 +82,38 @@
         grid-row:1!important;
       }
     }
+    @media(min-width:650px) and (max-width:900px){
+      .round-row{
+        grid-template-columns:36px minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1fr) 34px!important;
+        gap:8px!important;
+        padding:12px 10px!important;
+        align-items:end!important;
+      }
+      .round-row[data-anchor="heats"],
+      .round-row[data-anchor="final"]{
+        grid-template-columns:36px minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1fr)!important;
+      }
+      .round-row .qualifiers-wrap{
+        grid-column:auto!important;
+      }
+      .round-row .remove-round-btn{
+        grid-column:auto!important;
+        grid-row:auto!important;
+        justify-self:end!important;
+        align-self:end!important;
+      }
+      .round-row .field{
+        min-width:0!important;
+      }
+      .round-row .field label{
+        font-size:.84rem;
+        line-height:1.25;
+      }
+      .round-row input,
+      .round-row select{
+        min-width:0;
+      }
+    }
   `;
   document.head.appendChild(style);
 
@@ -101,6 +133,18 @@
       <p><strong>Arrows:</strong> use ↑ or ↓ to move a round one place at a time. You can place each grade/event round in the exact order required by your competition.</p>`;
 
     card.querySelector('.programme-order-warning')?.remove();
+    return true;
+  }
+
+  function syncOperatorCopy() {
+    const hirePanel = document.querySelector('.step-panel[data-panel="1"]');
+    const organiserCard = [...(hirePanel?.querySelectorAll('.card') || [])]
+      .find(card => card.querySelector('h3')?.textContent.trim() === 'What the organiser provides');
+    const note = [...(organiserCard?.querySelectorAll('.note') || [])]
+      .find(item => item.textContent.includes('operate the timing system'));
+    const strong = note?.querySelector('strong');
+    if (!strong) return false;
+    strong.textContent = 'Waimarino Shears staff/personnel operate the timing system.';
     return true;
   }
 
@@ -227,6 +271,7 @@
 
   function initialise(attempt = 0) {
     const ready = tidyProgrammeHelp();
+    syncOperatorCopy();
     refreshHandleTitles();
     if (!ready && attempt < 40) window.setTimeout(() => initialise(attempt + 1), 100);
   }
@@ -236,6 +281,9 @@
   } else {
     initialise();
   }
+
+  window.setTimeout(syncOperatorCopy, 600);
+  window.setTimeout(syncOperatorCopy, 1600);
 
   const straightFinalScript = document.createElement('script');
   straightFinalScript.src = 'straight-final.js?v=1.0.2';
