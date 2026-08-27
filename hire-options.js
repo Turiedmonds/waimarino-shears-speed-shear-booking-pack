@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoHireOptionsVersion) return;
-  window.__waimarinoHireOptionsVersion = '1.0.0';
+  window.__waimarinoHireOptionsVersion = '1.0.1';
 
   const DRAFT_KEY = typeof STORAGE_KEY === 'undefined'
     ? 'waimarinoSpeedShearBookingPackDraftV1'
@@ -15,18 +15,12 @@
     return Number(value) === 1 ? 1 : 2;
   }
 
-  function normaliseBrandingAfterEvent(value) {
-    return ['store', 'return'].includes(value) ? value : '';
-  }
-
   function ensureHireState() {
     if (typeof state === 'undefined') return;
     state.hire = state.hire || {};
     state.hire.setupType = normaliseSetupType(state.hire.setupType);
     state.hire.competitionBranding = state.hire.setupType === 'full' && state.hire.competitionBranding === true;
-    state.hire.brandingAfterEvent = state.hire.competitionBranding
-      ? normaliseBrandingAfterEvent(state.hire.brandingAfterEvent)
-      : '';
+    delete state.hire.brandingAfterEvent;
     state.competitionSetup = state.competitionSetup || {};
     state.competitionSetup.stands = normaliseStands(state.competitionSetup.stands);
   }
@@ -51,12 +45,6 @@
       : 'Full Waimarino Shears stand, electronics & operation';
   }
 
-  function brandingAfterEventLabel(value) {
-    if (value === 'store') return 'Leave with Waimarino Shears for storage and future hires';
-    if (value === 'return') return 'Return to organiser after the competition';
-    return '—';
-  }
-
   function patchHireInformation() {
     const panel = document.querySelector('.step-panel[data-panel="1"]');
     if (!panel) return;
@@ -67,7 +55,7 @@
     if (list && !list.dataset.hireOptionsPatched) {
       list.dataset.hireOptionsPatched = 'true';
       list.innerHTML = `
-        <li><strong>Standard full setup:</strong> our modular speed shear stand, configured for one or two competition stands as selected</li>
+        <li><strong>Standard full setup:</strong> our speed shear stand, configured for one or two competition stands as selected</li>
         <li>Heiniger Evo shearing plant equipment for the selected stand configuration</li>
         <li>Speed Shear Timing System</li>
         <li>TV display equipment appropriate to the selected stand configuration</li>
@@ -79,10 +67,13 @@
         <li>A minimum of three Waimarino Shears personnel to operate the system</li>
         <li>Competition entry forms, if required, to assist with competitor entries</li>
         <li><strong>Electronics & operation option:</strong> by selection in this booking, we can install and operate our timing electronics on a suitable organiser-supplied shearing stand</li>`;
-      const note = document.createElement('p');
-      note.className = 'note';
-      note.innerHTML = '<strong>The standard NZ$750 + GST hire fee applies to either setup type and to one- or two-stand operation.</strong> The main service work—transport, electronics setup, testing, operation and pack-down—remains substantially the same.';
-      list.insertAdjacentElement('afterend', note);
+      let note = provideCard?.querySelector('ul + .note');
+      if (!note) {
+        note = document.createElement('p');
+        note.className = 'note';
+        list.insertAdjacentElement('afterend', note);
+      }
+      note.innerHTML = '<strong>The standard NZ$750 + GST hire fee applies to all setup types and stand counts.</strong>';
     }
 
     const spaceCard = [...panel.querySelectorAll('.card')]
@@ -93,10 +84,10 @@
       if (measure) measure.textContent = 'Full two-stand setup: 4.8 m wide × 2.9 m deep × 2.45 m high';
       const paragraphs = [...spaceCard.querySelectorAll(':scope > p')].filter(p => p !== measure);
       if (paragraphs[0]) {
-        paragraphs[0].textContent = 'The dimensions above are for our full two-stand setup. One-stand operation uses only one side of our modular stand and requires less width. If you select electronics and operation on your own stand, the organiser-supplied stand determines the physical stand footprint.';
+        paragraphs[0].textContent = 'The stand is 4.8 m wide from side to side. The shearing board itself is 1.8 m deep from front to back. The catching-pen fencing extends a further 1.1 m behind the board, making the overall depth 2.9 m from the front edge of the shearing board to the rear catching-pen fence.';
       }
       if (paragraphs[1]) {
-        paragraphs[1].textContent = 'Additional room is always required around or near the active stand for safe access and for the timing-system operating area.';
+        paragraphs[1].textContent = 'Additional space is required around or near the stand for safe access and for the timing-system operating area. The operating area needs to be within suitable close proximity to the stand, but does not need to be directly beside it.';
       }
     }
   }
@@ -104,53 +95,59 @@
   function installHireSetupCard() {
     const panel = document.querySelector('.step-panel[data-panel="2"]');
     const costBox = panel?.querySelector('.cost-box');
-    if (!panel || !costBox || document.getElementById('hireConfigurationCard')) return;
+    if (!panel || !costBox) return;
 
-    const card = document.createElement('section');
-    card.id = 'hireConfigurationCard';
-    card.className = 'card';
-    card.innerHTML = `
-      <h3>Hire setup</h3>
-      <div class="form-grid two-col">
-        <div class="field full">
-          <label for="hireSetupType">What setup will be used?</label>
-          <select id="hireSetupType">
-            <option value="full">Full Waimarino Shears stand, electronics &amp; operation</option>
-            <option value="electronics-only">Electronics &amp; operation on organiser-supplied shearing stand</option>
-          </select>
-          <p class="help-text">The standard NZ$750 + GST hire fee applies to both options. Waimarino Shears still transports, installs, tests, operates and packs down the timing electronics.</p>
-        </div>
-      </div>
-      <div id="competitionBrandingWrap">
-        <hr style="border:0;border-top:1px solid var(--line,#ddd);margin:18px 0">
-        <h4 style="margin-bottom:6px">Optional competition stand branding</h4>
-        <p class="help-text">Available when the Waimarino Shears stand is supplied. This is for your competition or event logo/name only. <strong>Sponsor branding is not included.</strong></p>
+    let card = document.getElementById('hireConfigurationCard');
+    if (!card) {
+      card = document.createElement('section');
+      card.id = 'hireConfigurationCard';
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>Hire setup</h3>
         <div class="form-grid two-col">
-          <div class="field">
-            <label for="competitionBranding">Would you like custom competition branding panels?</label>
-            <select id="competitionBranding">
-              <option value="no">No</option>
-              <option value="yes">Yes — arrange competition branding</option>
-            </select>
-          </div>
-          <div id="brandingAfterEventWrap" class="field hidden">
-            <label for="brandingAfterEvent">What should happen to the panels after the event?</label>
-            <select id="brandingAfterEvent">
+          <div class="field full">
+            <label for="hireSetupType">What setup will be used?</label>
+            <select id="hireSetupType">
               <option value="">Select an option</option>
-              <option value="store">Leave with Waimarino Shears for storage and future hires</option>
-              <option value="return">Return to organiser after the competition</option>
+              <option value="full">Full Waimarino Shears stand, electronics &amp; operation</option>
+              <option value="electronics-only">Electronics &amp; operation on organiser-supplied shearing stand</option>
             </select>
+            <p class="help-text">The standard NZ$750 + GST hire fee applies to both options.</p>
           </div>
         </div>
-        <div id="brandingRequirements" class="important-note hidden" style="margin-top:12px">
-          <strong>Additional one-off cost.</strong> The final branding price will be confirmed before anything is ordered. Print-ready competition artwork and branding payment must be received at least <strong>14 days before the competition</strong>. Send the artwork to <a href="mailto:${SUBMISSION_EMAIL}">${SUBMISSION_EMAIL}</a> and quote your Booking Reference. Once made, the panels can be reused for future hires.
-        </div>
-      </div>`;
+        <div id="competitionBrandingWrap">
+          <hr style="border:0;border-top:1px solid var(--line,#ddd);margin:18px 0">
+          <h4 style="margin-bottom:6px">Optional competition stand branding</h4>
+          <p class="help-text">Available when the Waimarino Shears stand is supplied. This is for your competition or event logo/name only. <strong>Separate sponsor branding panels are not included.</strong></p>
+          <p id="brandingAdditionalCostNote" class="help-text"><strong>Custom competition branding panels have an additional one-off cost, charged at the supplier's actual cost, including GST where applicable, with no markup by Waimarino Shears.</strong></p>
+          <div class="form-grid two-col">
+            <div class="field">
+              <label for="competitionBranding">Would you like custom competition branding panels?</label>
+              <select id="competitionBranding">
+                <option value="">Select an option</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+          </div>
+          <div id="brandingRequirements" class="important-note hidden" style="margin-top:12px">
+            Waimarino Shears arranges the panels on the organiser's behalf. The final supplier cost will be confirmed before anything is ordered, and a copy of the supplier invoice or other evidence of the actual supplier cost will be provided. The branding cost will be added as a separate amount to the deposit invoice and must be paid before the panels are ordered. Your competition branding and branding payment must be received at least <strong>14 days before the competition</strong>. Once paid for, the panels are the property of the organiser. Send your competition branding to <a href="mailto:${SUBMISSION_EMAIL}">${SUBMISSION_EMAIL}</a> and quote your Booking Reference.
+          </div>
+        </div>`;
 
-    costBox.insertAdjacentElement('afterend', card);
+      costBox.insertAdjacentElement('afterend', card);
+    }
 
-    document.getElementById('hireSetupType')?.addEventListener('change', updateConditionalFields);
-    document.getElementById('competitionBranding')?.addEventListener('change', updateConditionalFields);
+    const setup = document.getElementById('hireSetupType');
+    const branding = document.getElementById('competitionBranding');
+    if (setup && !setup.dataset.hireOptionsListener) {
+      setup.dataset.hireOptionsListener = 'true';
+      setup.addEventListener('change', updateConditionalFields);
+    }
+    if (branding && !branding.dataset.hireOptionsListener) {
+      branding.dataset.hireOptionsListener = 'true';
+      branding.addEventListener('change', updateConditionalFields);
+    }
   }
 
   function installStandCard() {
@@ -173,7 +170,7 @@
           </select>
         </div>
       </div>
-      <p class="help-text">Two stands is the normal setup. One-stand operation is also available. This setting is passed into the timing-system booking import.</p>`;
+      <p class="help-text">Two stands is the normal setup. One-stand operation is also available.</p>`;
 
     judgingCard.insertAdjacentElement('beforebegin', card);
   }
@@ -191,10 +188,10 @@
     heading.textContent = 'Hire configuration and optional branding';
 
     const setup = document.createElement('p');
-    setup.innerHTML = '<strong>Setup type and stand count:</strong> The standard hire fee applies whether the competition uses one or two stands and whether Waimarino Shears supplies the full stand or installs and operates its timing electronics on a suitable organiser-supplied shearing stand. Where the organiser supplies the stand, the organiser is responsible for ensuring it is safe, structurally sound, suitable for the competition and ready for installation. Waimarino Shears may decline or delay installation where the supplied stand or installation conditions are unsafe or unsuitable.';
+    setup.innerHTML = '<strong>Setup type and stand count:</strong> The standard hire fee applies whether the competition uses one or two stands and whether Waimarino Shears supplies the full stand or installs and operates its timing electronics on a suitable organiser-supplied shearing stand. If the organiser supplies the stand, the organiser must ensure it is safe, structurally sound, suitable for the competition and ready for installation. Waimarino Shears may delay or decline installation if the stand or installation conditions are unsafe or unsuitable.';
 
     const branding = document.createElement('p');
-    branding.innerHTML = '<strong>Optional competition stand branding:</strong> Where the Waimarino Shears stand is supplied, the organiser may request custom panels carrying the competition or event branding. Sponsor branding is not included. Branding is an additional one-off cost. The price will be confirmed before ordering, and suitable print-ready artwork and branding payment must be received at least 14 days before the competition. The organiser may take the panels after the event or leave them with Waimarino Shears for storage and reuse at future hires.';
+    branding.innerHTML = '<strong>Optional competition stand branding:</strong> When the Waimarino Shears stand is supplied, the organiser may request custom panels carrying the competition or event branding. Separate sponsor branding panels are not included. The panels are charged at the supplier\'s actual cost, with no markup by Waimarino Shears. The organiser will be given a copy of the supplier invoice, or other evidence of the actual supplier cost, and the amount charged will include GST where applicable. The branding cost will be added as a separate amount to the deposit invoice and must be paid before the panels are ordered. Final competition branding and payment must be received at least 14 days before the competition. Once the branding cost has been paid, the panels are the property of the organiser.';
 
     accommodationHeading.insertAdjacentElement('beforebegin', heading);
     heading.insertAdjacentElement('afterend', setup);
@@ -205,21 +202,14 @@
     const setup = document.getElementById('hireSetupType');
     const branding = document.getElementById('competitionBranding');
     const brandingWrap = document.getElementById('competitionBrandingWrap');
-    const afterWrap = document.getElementById('brandingAfterEventWrap');
     const requirements = document.getElementById('brandingRequirements');
-    const after = document.getElementById('brandingAfterEvent');
-    const fullSetup = (setup?.value || 'full') === 'full';
+    const fullSetup = (setup?.value || '') === 'full';
 
     brandingWrap?.classList.toggle('hidden', !fullSetup);
-    if (!fullSetup && branding) {
-      branding.value = 'no';
-      if (after) after.value = '';
-    }
+    if (!fullSetup && branding) branding.value = '';
 
     const brandingSelected = fullSetup && branding?.value === 'yes';
-    afterWrap?.classList.toggle('hidden', !brandingSelected);
     requirements?.classList.toggle('hidden', !brandingSelected);
-    if (!brandingSelected && after) after.value = '';
     syncHireState();
   }
 
@@ -229,14 +219,11 @@
 
     const setup = document.getElementById('hireSetupType');
     const branding = document.getElementById('competitionBranding');
-    const after = document.getElementById('brandingAfterEvent');
     const stands = document.getElementById('competitionStands');
 
-    if (setup) state.hire.setupType = normaliseSetupType(setup.value);
+    if (setup && ['full', 'electronics-only'].includes(setup.value)) state.hire.setupType = setup.value;
     if (branding) state.hire.competitionBranding = state.hire.setupType === 'full' && branding.value === 'yes';
-    if (after) state.hire.brandingAfterEvent = state.hire.competitionBranding
-      ? normaliseBrandingAfterEvent(after.value)
-      : '';
+    delete state.hire.brandingAfterEvent;
     if (stands) state.competitionSetup.stands = normaliseStands(stands.value);
   }
 
@@ -244,12 +231,10 @@
     ensureHireState();
     const setup = document.getElementById('hireSetupType');
     const branding = document.getElementById('competitionBranding');
-    const after = document.getElementById('brandingAfterEvent');
     const stands = document.getElementById('competitionStands');
 
-    if (setup) setup.value = normaliseSetupType(state.hire.setupType);
-    if (branding) branding.value = state.hire.competitionBranding ? 'yes' : 'no';
-    if (after) after.value = normaliseBrandingAfterEvent(state.hire.brandingAfterEvent);
+    if (setup && !setup.value) setup.value = normaliseSetupType(state.hire.setupType);
+    if (branding && !branding.value) branding.value = state.hire.competitionBranding ? 'yes' : 'no';
     if (stands) stands.value = String(normaliseStands(state.competitionSetup.stands));
     updateConditionalFields();
   }
@@ -272,9 +257,11 @@
       reviewItem('Competition stand branding', branding ? 'Yes — competition/event branding only' : 'No')
     ];
     if (branding) {
-      rows.push(reviewItem('Branding after event', brandingAfterEventLabel(state.hire?.brandingAfterEvent)));
-      rows.push(reviewItem('Branding cost', 'Additional one-off charge — price confirmed before ordering'));
-      rows.push(reviewItem('Artwork & payment deadline', 'At least 14 days before the competition'));
+      rows.push(reviewItem('Branding cost', 'Supplier actual cost, including GST where applicable, with no markup by Waimarino Shears'));
+      rows.push(reviewItem('Branding cost evidence', 'Supplier invoice or other evidence of the actual supplier cost will be provided'));
+      rows.push(reviewItem('Branding payment', 'Added as a separate amount to the deposit invoice and payable before ordering'));
+      rows.push(reviewItem('Branding ownership', 'Once paid for, the panels are the property of the organiser'));
+      rows.push(reviewItem('Branding & payment deadline', 'At least 14 days before the competition'));
     }
     return `<section id="hireConfigurationReview" class="review-section"><h3>Hire configuration</h3><div class="review-list">${rows.join('')}</div></section>`;
   }
@@ -297,10 +284,7 @@
         const pack = original(submitted);
         pack.hire = {
           setupType: normaliseSetupType(state.hire?.setupType),
-          competitionBranding: state.hire?.competitionBranding === true,
-          brandingAfterEvent: state.hire?.competitionBranding
-            ? normaliseBrandingAfterEvent(state.hire?.brandingAfterEvent)
-            : ''
+          competitionBranding: state.hire?.competitionBranding === true
         };
         pack.competitionSetup = pack.competitionSetup || {};
         pack.competitionSetup.stands = normaliseStands(state.competitionSetup?.stands);
@@ -315,9 +299,6 @@
       const wrapped = function hireAwareValidateForReview() {
         syncHireState();
         const warnings = original();
-        if (!['full', 'electronics-only'].includes(state.hire?.setupType)) {
-          warnings.push('Hire setup type is missing.');
-        }
         if (![1, 2].includes(Number(state.competitionSetup?.stands))) {
           warnings.push('Competition stands in use must be 1 or 2.');
         }
@@ -325,11 +306,8 @@
           if (state.hire.setupType !== 'full') {
             warnings.push('Competition stand branding is only available when the Waimarino Shears stand is supplied.');
           }
-          if (!state.hire.brandingAfterEvent) {
-            warnings.push('Choose what should happen to the competition branding panels after the event.');
-          }
           if (!brandingDeadlineIsPossible()) {
-            warnings.push('Competition branding requires at least 14 days before the competition for artwork, payment and production.');
+            warnings.push('Competition branding requires at least 14 days before the competition for branding and payment.');
           }
         }
         return [...new Set(warnings)];
@@ -387,7 +365,7 @@
           ? `Selected setup: Waimarino Shears timing electronics and operation on an organiser-supplied shearing stand, using ${stands} competition stand${stands === 1 ? '' : 's'}. The standard hire fee applies.`
           : `Selected setup: Waimarino Shears full stand, electronics and operation, using ${stands} competition stand${stands === 1 ? '' : 's'}. The standard hire fee applies.`;
         const brandingSummary = state.hire?.competitionBranding
-          ? ' Optional competition/event branding panels have been requested. Sponsor branding is not included. This is an additional one-off cost; artwork and payment are required at least 14 days before the competition.'
+          ? ' Optional competition/event branding panels have been requested. Separate sponsor branding panels are not included. The panels are charged at the supplier\'s actual cost, including GST where applicable, with no markup by Waimarino Shears. Supplier cost evidence will be provided, payment is required before ordering, and the panels belong to the organiser once paid for. Competition branding and payment are required at least 14 days before the competition.'
           : '';
         html = html.replace(
           /<p>Standard hire includes the two-stand speed shear stand,[\s\S]*?<\/p><p>Competition entry forms can be provided if required\./,
