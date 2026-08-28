@@ -111,10 +111,8 @@ function entryManagerInternalEmailBlock_(handoff) {
     <div style="border-left:5px solid #169447;background:#eefaf2;padding:12px 14px;margin:18px 0">
       <strong>Entry Manager competition record created.</strong><br>
       The competition contact details, grades/events and confirmed Programme of Events have already been loaded.<br><br>
-      <strong>Private Entry Manager:</strong><br>
-      <a href="${escapeHtml_(handoff.entryManagerUrl)}">${escapeHtml_(handoff.entryManagerUrl)}</a><br><br>
-      <strong>Public competitor entry:</strong><br>
-      <a href="${escapeHtml_(handoff.competitorEntryUrl)}">${escapeHtml_(handoff.competitorEntryUrl)}</a><br><br>
-      <span style="color:#555">Do not release the organiser links until the booking/deposit process reaches the point you want them sent.</span>
+      <a href="${escapeHtml_(handoff.entryManagerUrl)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;font-weight:700;padding:10px 14px;border-radius:6px;margin:0 8px 8px 0">Open Private Entry Manager</a>
+      <a href="${escapeHtml_(handoff.competitorEntryUrl)}" style="display:inline-block;background:#EB1D27;color:#fff;text-decoration:none;font-weight:700;padding:10px 14px;border-radius:6px;margin:0 0 8px">Open Public Competitor Entry</a><br>
+      <span style="color:#555">The private link is for the competition organiser. The public competitor-entry link is the one intended for sharing with competitors. Do not release organiser access until the booking/deposit process reaches the point you want it sent.</span>
     </div>`;
 }
