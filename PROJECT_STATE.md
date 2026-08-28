@@ -44,7 +44,7 @@ Current verified production state as at 28 August 2026:
 - Booking Receiver Google Apps Script active deployment: **Version 23**.
 - Booking Receiver endpoint remains the existing production web-app deployment; do not create a replacement deployment unless intentionally required.
 - Custom domain `bookings.waimarinoshears.com` is configured through Wix DNS/GitHub Pages.
-- A shared Waimarino custom-dialog layer has now been committed to the frontend. GitHub Pages publication/browser verification is still required before treating the popup replacement as fully verified live.
+- The shared Waimarino custom-dialog layer is published live and has been manually smoke-tested successfully in the production Booking Pack.
 
 ## Uniform custom-dialog standard
 
@@ -77,7 +77,7 @@ Current Booking Pack actions covered:
 
 Existing custom dialogs such as Grade / Event Round Format help and Saved Drafts are visually harmonised by the same stylesheet.
 
-Google/browser security or authorisation prompts are outside the application and cannot be restyled.
+Production browser testing has confirmed the new dialog presentation works correctly. Google/browser security or authorisation prompts are outside the application and cannot be restyled.
 
 ## Confirmed booking workflow
 
@@ -263,11 +263,8 @@ The shared Booking Receiver ↔ Entry Manager secret was exposed during developm
 
 ## Next planned work
 
-1. Confirm GitHub Pages has published the new Booking Pack custom-dialog layer.
-2. Smoke-test the safe popup paths, especially Clear Form / draft deletion / Programme reset using disposable draft data.
-3. Complete the matching System Operator Portal custom-dialog deployment from the Entries repository.
-4. Set up a dedicated normal browser profile for the Waimarino Shears Google account so the private Operator Portal can be opened without InPrivate while keeping `Only myself` access.
-5. Rotate the Booking Receiver ↔ Entry Manager shared secret as final production-security cleanup.
+1. When back at the Raspberry Pi, complete the separate Timing System custom-dialog pull/test workflow from its own repository.
+2. Rotate the Booking Receiver ↔ Entry Manager shared secret as final production-security cleanup.
 
 ## Do not assume
 
