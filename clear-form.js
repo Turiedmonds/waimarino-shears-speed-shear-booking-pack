@@ -265,6 +265,50 @@
   `;
   document.head.appendChild(style);
 
+  function installTermsVersionConsistency() {
+    const CURRENT_TERMS_VERSION = '28 August 2026';
+
+    function applyCurrentTermsVersion() {
+      if (typeof state !== 'undefined' && state?.booking) {
+        state.booking.termsVersion = CURRENT_TERMS_VERSION;
+      }
+    }
+
+    applyCurrentTermsVersion();
+
+    if (typeof syncStateFromForm === 'function' && !syncStateFromForm.__termsVersionConsistencyWrapped) {
+      const original = syncStateFromForm;
+      syncStateFromForm = function termsVersionConsistentSyncStateFromForm(...args) {
+        const result = original.apply(this, args);
+        applyCurrentTermsVersion();
+        return result;
+      };
+      syncStateFromForm.__termsVersionConsistencyWrapped = true;
+    }
+
+    if (typeof buildPackage === 'function' && !buildPackage.__termsVersionConsistencyWrapped) {
+      const original = buildPackage;
+      buildPackage = function termsVersionConsistentBuildPackage(...args) {
+        applyCurrentTermsVersion();
+        const pack = original.apply(this, args);
+        if (pack?.booking) pack.booking.termsVersion = CURRENT_TERMS_VERSION;
+        applyCurrentTermsVersion();
+        return pack;
+      };
+      buildPackage.__termsVersionConsistencyWrapped = true;
+    }
+
+    document.getElementById('termsAccepted')?.addEventListener('change', () => {
+      applyCurrentTermsVersion();
+      if (typeof syncAcceptance === 'function') syncAcceptance();
+    });
+
+    window.setTimeout(applyCurrentTermsVersion, 500);
+    window.setTimeout(applyCurrentTermsVersion, 1500);
+    window.setTimeout(applyCurrentTermsVersion, 3500);
+  }
+
   installClearButton();
   installConfigurationUiPolish();
+  installTermsVersionConsistency();
 })();
