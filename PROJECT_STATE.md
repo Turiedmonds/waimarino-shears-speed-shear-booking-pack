@@ -1,6 +1,6 @@
 # PROJECT STATE — Waimarino Shears Speed Shear Booking Pack
 
-**Last updated:** 28 August 2026
+**Last updated:** 29 August 2026
 
 This file is the authoritative current-state handoff for future ChatGPT/Codex sessions.
 
@@ -36,7 +36,7 @@ The browser-based hire/booking and competition-configuration pack for the Waimar
 
 ## Production baseline
 
-Current verified production state as at 28 August 2026:
+Current verified production state as at 29 August 2026:
 
 - Effective frontend/backend app version: **1.5.1** via the final Hire Options compatibility layer.
 - Hire Options version: **1.0.5**.
@@ -45,6 +45,7 @@ Current verified production state as at 28 August 2026:
 - Booking Receiver endpoint remains the existing production web-app deployment; do not create a replacement deployment unless intentionally required.
 - Custom domain `bookings.waimarinoshears.com` is configured through Wix DNS/GitHub Pages.
 - The shared Waimarino custom-dialog layer is published live and has been manually smoke-tested successfully in the production Booking Pack.
+- The shared `ENTRY_MANAGER_SHARED_SECRET` was rotated on **29 August 2026** in both the Booking Receiver and Speed Shear Entry Manager Apps Script projects. The replacement value is intentionally not recorded in GitHub or chat.
 
 ## Uniform custom-dialog standard
 
@@ -172,6 +173,8 @@ Configuration comes from Booking Receiver Script Properties:
 
 Do not place the shared secret in repository files, documentation or user-facing output.
 
+The secret value configured here must exactly match the `ENTRY_MANAGER_SHARED_SECRET` value configured in the Speed Shear Entry Manager Apps Script project. Both were rotated together on 29 August 2026 after the previous development secret had been exposed in conversation history. Script Property changes do not require a new Apps Script deployment.
+
 Handoff payload includes:
 
 - Booking Reference;
@@ -215,6 +218,8 @@ Verified outcomes:
 - Waimarino Shears backup copy worked;
 - old GitHub-hosted links already present in emails redirect successfully to the new custom Entry Manager domain.
 
+The secret rotation itself is configuration-complete; the next new booking handoff will naturally confirm that the two rotated Script Property values still match.
+
 ## Current Entry Manager destination
 
 Production Entry Manager/competitor domain:
@@ -253,18 +258,18 @@ For Booking Receiver Apps Script changes:
 6. Choose **New version**.
 7. Deploy.
 8. Confirm the active version and existing web-app URL.
-9. Record the deployment version here and in `CHANGELOG.md`.
+9. Record the new live version here and in `CHANGELOG.md`.
 
-Frontend-only GitHub Pages changes do **not** require a Booking Receiver Apps Script deployment. Wait for GitHub Pages to publish, then refresh/hard-refresh the production site and test the affected controls.
+Frontend-only GitHub Pages changes do **not** require a Booking Receiver Apps Script deployment. Script Property value changes also do **not** require a new deployment.
 
 ## Security/cleanup note
 
-The shared Booking Receiver ↔ Entry Manager secret was exposed during development/testing conversation history. It should be rotated in both Apps Script projects before treating the setup as final production-hardening. Never record the secret value in this repository.
+The shared Booking Receiver ↔ Entry Manager secret rotation is complete. Never record the current secret value in this repository, chat, emails or public output.
 
 ## Next planned work
 
-1. When back at the Raspberry Pi, complete the separate Timing System custom-dialog pull/test workflow from its own repository.
-2. Rotate the Booking Receiver ↔ Entry Manager shared secret as final production-security cleanup.
+1. Let the next legitimate booking handoff confirm the rotated shared-secret pairing in normal operation; do not create a duplicate real booking solely for this test.
+2. When back at the Raspberry Pi, complete the separate Timing System custom-dialog pull/test workflow from its own repository.
 
 ## Do not assume
 
