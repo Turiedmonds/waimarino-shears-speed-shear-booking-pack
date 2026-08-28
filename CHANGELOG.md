@@ -4,6 +4,23 @@ This changelog records meaningful completed changes. Keep it current whenever fu
 
 ## 28 August 2026
 
+### Uniform Waimarino custom dialogs
+
+- Added `waimarino-dialog.css` and `waimarino-dialog.js` as the Booking Pack shared modal layer.
+- Updated `clear-form.js` to load the shared dialog layer after the existing frontend compatibility scripts.
+- Replaced the user experience for the known browser-native confirmation paths without rewriting their tested underlying actions.
+- Custom Waimarino dialogs now cover:
+  - Clear Form / clear current draft;
+  - Delete Saved Draft;
+  - Reset Programme of Events;
+  - Remove Heats / run as a straight Final;
+  - Download Booking File despite review warnings;
+  - legacy Booking File open error alerts.
+- Existing Grade / Event Round Format help and Saved Drafts dialogs are visually harmonised by the same stylesheet.
+- Dialog standard: white rounded card, Waimarino red top accent, dark overlay, consistent heading/actions, with destructive confirmation clearly shown in red.
+- Google/browser security and authorisation prompts remain platform UI and cannot be restyled.
+- This is a GitHub Pages frontend change only; no Booking Receiver Apps Script deployment is required. Production publication/browser smoke testing remains pending.
+
 ### Booking contact and competitor-contact workflow
 
 - Added dedicated **Competition contact for competitor enquiries** workflow.
