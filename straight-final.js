@@ -4,7 +4,7 @@
   core.async = false;
   core.onload = () => {
     const initialCopySync = document.createElement('script');
-    initialCopySync.src = 'initial-copy-sync.js?v=1.0.2';
+    initialCopySync.src = 'initial-copy-sync.js?v=1.0.3';
     initialCopySync.async = false;
     initialCopySync.onload = () => {
       const hireOptions = document.createElement('script');
@@ -16,7 +16,7 @@
         finalPolish.async = false;
         finalPolish.onload = () => {
           const bookingPolicy = document.createElement('script');
-          bookingPolicy.src = 'booking-policy-final.js?v=1.2.0';
+          bookingPolicy.src = 'booking-policy-final.js?v=1.2.4';
           bookingPolicy.async = false;
           bookingPolicy.onload = () => {
             const bookingDateRules = document.createElement('script');
