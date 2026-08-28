@@ -44,6 +44,40 @@ Current verified production state as at 28 August 2026:
 - Booking Receiver Google Apps Script active deployment: **Version 23**.
 - Booking Receiver endpoint remains the existing production web-app deployment; do not create a replacement deployment unless intentionally required.
 - Custom domain `bookings.waimarinoshears.com` is configured through Wix DNS/GitHub Pages.
+- A shared Waimarino custom-dialog layer has now been committed to the frontend. GitHub Pages publication/browser verification is still required before treating the popup replacement as fully verified live.
+
+## Uniform custom-dialog standard
+
+The Speed Shear ecosystem is standardising user-controlled popup dialogs around the same Waimarino Shears visual pattern:
+
+- white rounded panel;
+- Waimarino red top accent;
+- dark page overlay;
+- **Waimarino Shears** eyebrow/branding;
+- consistent heading, body copy and button spacing;
+- red confirmation button only for destructive/warning actions;
+- browser-native `alert()` / `confirm()` should not be used where the system controls the interface.
+
+Booking Pack implementation:
+
+- `waimarino-dialog.css` — shared modal styling;
+- `waimarino-dialog.js` — reusable dialog API plus compatibility bridge for legacy native confirmation points;
+- `clear-form.js` loads the shared dialog CSS/JS layer after the existing Booking Pack UI scripts.
+
+The compatibility bridge intentionally preserves the existing tested actions and intercepts the known native-browser popup paths before replaying the original action after the user confirms.
+
+Current Booking Pack actions covered:
+
+- Clear Form / clear current draft;
+- Delete Saved Draft;
+- Reset Programme of Events;
+- Remove Heats and run as a straight Final;
+- Download Booking File despite review warnings;
+- legacy Booking File open error alerts.
+
+Existing custom dialogs such as Grade / Event Round Format help and Saved Drafts are visually harmonised by the same stylesheet.
+
+Google/browser security or authorisation prompts are outside the application and cannot be restyled.
 
 ## Confirmed booking workflow
 
@@ -187,11 +221,11 @@ Production Entry Manager/competitor domain:
 
 `https://entries.waimarinoshears.com`
 
-The Entry Manager is maintained in the separate repository:
+The Entry Manager and private System Operator Portal source are maintained in:
 
 `Turiedmonds/speed-shear-roster-builder`
 
-Future work on Entry Manager UI, short links, operator portal or competitor-entry behaviour belongs primarily in that repository unless the booking handoff itself must change.
+Work on Entry Manager UI, operator portal or competitor-entry behaviour belongs primarily in that repository unless the booking handoff itself must change.
 
 ## Files that are especially important
 
@@ -203,6 +237,9 @@ Future work on Entry Manager UI, short links, operator portal or competitor-entr
 - `terms-acceptance-final.js`
 - `booking-policy-final.js`
 - `booking-policy-final-core.js`
+- `waimarino-dialog.css`
+- `waimarino-dialog.js`
+- `clear-form.js`
 
 ## Deployment procedure
 
@@ -218,23 +255,23 @@ For Booking Receiver Apps Script changes:
 8. Confirm the active version and existing web-app URL.
 9. Record the deployment version here and in `CHANGELOG.md`.
 
+Frontend-only GitHub Pages changes do **not** require a Booking Receiver Apps Script deployment. Wait for GitHub Pages to publish, then refresh/hard-refresh the production site and test the affected controls.
+
 ## Security/cleanup note
 
 The shared Booking Receiver ↔ Entry Manager secret was exposed during development/testing conversation history. It should be rotated in both Apps Script projects before treating the setup as final production-hardening. Never record the secret value in this repository.
 
 ## Next planned work
 
-The immediate next project is a **System Operator Portal** for Waimarino Shears.
-
-Goal:
-
-One permanent operator page where Waimarino Shears can see/open all competitions and their private/public entry links instead of searching booking emails.
-
-The portal should be started from the `speed-shear-roster-builder` repository context, not by changing the Booking Pack frontend first.
+1. Confirm GitHub Pages has published the new Booking Pack custom-dialog layer.
+2. Smoke-test the safe popup paths, especially Clear Form / draft deletion / Programme reset using disposable draft data.
+3. Complete the matching System Operator Portal custom-dialog deployment from the Entries repository.
+4. Set up a dedicated normal browser profile for the Waimarino Shears Google account so the private Operator Portal can be opened without InPrivate while keeping `Only myself` access.
+5. Rotate the Booking Receiver ↔ Entry Manager shared secret as final production-security cleanup.
 
 ## Do not assume
 
 - Do not assume old chat context is authoritative if it conflicts with repository source.
-- Do not assume GitHub source is live until the relevant Apps Script deployment/version has also been updated.
+- Do not assume GitHub source is live until the relevant GitHub Pages publication or Apps Script deployment/version has also been updated.
 - Do not change the production Apps Script deployment URL casually; both systems depend on it.
 - Do not expose full access tokens or shared secrets in documentation.
