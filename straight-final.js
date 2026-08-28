@@ -20,7 +20,7 @@
           bookingPolicy.async = false;
           bookingPolicy.onload = () => {
             const bookingDateRules = document.createElement('script');
-            bookingDateRules.src = 'booking-date-rules.js?v=1.0.0';
+            bookingDateRules.src = 'booking-date-rules.js?v=1.0.1';
             bookingDateRules.async = false;
             bookingDateRules.onload = () => {
               const cleanShearTimeUi = document.createElement('script');
