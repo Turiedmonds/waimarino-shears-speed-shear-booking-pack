@@ -1,0 +1,144 @@
+:root{
+  --ws-dialog-red:#EB1D27;
+  --ws-dialog-ink:#171717;
+  --ws-dialog-muted:#626262;
+  --ws-dialog-line:#d8d8d8;
+  --ws-dialog-soft:#f7f7f7;
+  --ws-dialog-danger:#a11212;
+}
+
+.ws-dialog{
+  border:0;
+  padding:0;
+  background:transparent;
+  color:var(--ws-dialog-ink);
+  width:min(540px,calc(100vw - 28px));
+  max-width:540px;
+}
+
+.ws-dialog::backdrop,
+#progressionHelpDialog::backdrop,
+#savedBookingDraftsDialog::backdrop{
+  background:rgba(0,0,0,.58)!important;
+}
+
+.ws-dialog-card{
+  background:#fff;
+  border:1px solid var(--ws-dialog-line);
+  border-top:7px solid var(--ws-dialog-red);
+  border-radius:16px;
+  padding:22px;
+  box-shadow:0 24px 70px rgba(0,0,0,.3);
+}
+
+.ws-dialog-eyebrow{
+  margin:0 0 6px;
+  color:var(--ws-dialog-red);
+  font-size:12px;
+  line-height:1.2;
+  font-weight:850;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.ws-dialog-title{
+  margin:0;
+  font-size:24px;
+  line-height:1.18;
+}
+
+.ws-dialog-message{
+  margin:14px 0 0;
+  color:#333;
+  line-height:1.5;
+  white-space:pre-line;
+}
+
+.ws-dialog-detail{
+  margin:12px 0 0;
+  padding:11px 12px;
+  border-left:4px solid var(--ws-dialog-red);
+  border-radius:8px;
+  background:#fff6f6;
+  color:#4b2a2c;
+  line-height:1.45;
+  white-space:pre-line;
+}
+
+.ws-dialog-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px solid #ececec;
+}
+
+.ws-dialog-button{
+  min-height:42px;
+  border-radius:9px;
+  padding:9px 15px;
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.ws-dialog-cancel{
+  border:1px solid #888;
+  background:#fff;
+  color:#222;
+}
+
+.ws-dialog-confirm{
+  border:1px solid #111;
+  background:#111;
+  color:#fff;
+}
+
+.ws-dialog[data-tone="danger"] .ws-dialog-confirm,
+.ws-dialog[data-tone="error"] .ws-dialog-confirm{
+  border-color:var(--ws-dialog-danger);
+  background:var(--ws-dialog-danger);
+}
+
+.ws-dialog[data-tone="warning"] .ws-dialog-confirm{
+  border-color:var(--ws-dialog-red);
+  background:var(--ws-dialog-red);
+}
+
+.ws-dialog-button:focus-visible{
+  outline:3px solid rgba(235,29,39,.2);
+  outline-offset:2px;
+}
+
+/* Bring the Booking Pack's existing custom dialogs into the same visual family. */
+#progressionHelpDialog{
+  border:0!important;
+  border-radius:16px!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.3)!important;
+}
+
+#progressionHelpDialog>.dialog-body{
+  border-top:7px solid var(--ws-dialog-red);
+  border-radius:16px;
+  background:#fff;
+}
+
+#savedBookingDraftsDialog{
+  border:0!important;
+  border-radius:16px!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.3)!important;
+  overflow:hidden;
+}
+
+#savedBookingDraftsDialog>div{
+  border-top:7px solid var(--ws-dialog-red);
+}
+
+@media(max-width:600px){
+  .ws-dialog-card{padding:18px}
+  .ws-dialog-title{font-size:21px}
+  .ws-dialog-actions{display:grid;grid-template-columns:1fr}
+  .ws-dialog-button{width:100%}
+}
