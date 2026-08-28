@@ -1,8 +1,8 @@
 (() => {
   if (window.__waimarinoBookingPolicyFinalVersion) return;
-  window.__waimarinoBookingPolicyFinalVersion = '1.0.0';
+  window.__waimarinoBookingPolicyFinalVersion = '1.0.1';
 
-  const TERMS_VERSION = '22 August 2026';
+  const TERMS_VERSION = '28 August 2026';
   const APP_VERSION = '1.5.1';
   const TRAVEL_SHORT = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
 
@@ -162,7 +162,8 @@
         if (typeof state !== 'undefined') syncPolicyState();
         return html
           .replaceAll('19 August 2026', TERMS_VERSION)
-          .replaceAll('21 August 2026', TERMS_VERSION);
+          .replaceAll('21 August 2026', TERMS_VERSION)
+          .replaceAll('22 August 2026', TERMS_VERSION);
       };
       wrapped.__bookingPolicyFinalWrapped = true;
       buildHumanPackHtml = wrapped;
@@ -196,8 +197,6 @@
     wrapFunctions();
     applyFinalPolicy();
 
-    // Earlier compatibility scripts also tidy these areas during startup.
-    // Reapply this final wording after those startup passes have completed.
     window.setTimeout(applyFinalPolicy, 400);
     window.setTimeout(applyFinalPolicy, 1400);
     window.setTimeout(applyFinalPolicy, 3200);
