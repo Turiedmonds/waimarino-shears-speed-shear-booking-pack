@@ -2,6 +2,19 @@
 
 This changelog records meaningful completed changes. Keep it current whenever functionality, workflow, deployment, URLs, policy wording or architecture changes.
 
+## 29 August 2026
+
+### Booking Receiver ↔ Entry Manager shared secret rotated
+
+- Rotated the `ENTRY_MANAGER_SHARED_SECRET` Script Property in the **Waimarino Speed Shear Booking Receiver** Apps Script project.
+- Rotated the same `ENTRY_MANAGER_SHARED_SECRET` Script Property in the **Speed Shear Entry Manager** Apps Script project.
+- The replacement value is intentionally not stored in GitHub, documentation or chat.
+- `ENTRY_MANAGER_ENDPOINT` was not changed.
+- Existing Booking References, competition records, manager/public tokens and existing competition links were not changed.
+- No Booking Receiver deployment was required because this was a Script Property value change only.
+- The previous development secret that had been exposed in conversation history is no longer the configured shared secret.
+- The next legitimate booking handoff will naturally confirm the rotated values match; do not submit a duplicate real booking solely to test the secret.
+
 ## 28 August 2026
 
 ### Uniform Waimarino custom dialogs — production verified
