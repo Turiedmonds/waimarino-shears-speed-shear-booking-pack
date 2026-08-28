@@ -28,6 +28,7 @@ As at **28 August 2026**:
 - Booking Receiver Apps Script live deployment: **Version 23**
 - Booking Pack custom domain: **bookings.waimarinoshears.com**
 - Entry Manager handoff is live and connected to the separate Speed Shear Entries system.
+- Uniform Waimarino custom-dialog frontend source has been added; production GitHub Pages verification is pending.
 
 See `PROJECT_STATE.md` for the full verified state and outstanding work.
 
@@ -40,6 +41,20 @@ See `PROJECT_STATE.md` for the full verified state and outstanding work.
 5. Submit Booking Request
 
 The organiser accepts the Hire Terms & Conditions before submission. A submitted booking request is not treated as confirmed until the required booking/deposit process has been completed.
+
+## Uniform dialogs
+
+User-controlled confirmation/error popups use the same Waimarino Shears visual style across the Speed Shear web tools: white rounded panel, red top accent, dark overlay, consistent wording/actions and destructive buttons clearly marked in red.
+
+Booking Pack implementation:
+
+- `waimarino-dialog.css`
+- `waimarino-dialog.js`
+- loaded by the final `clear-form.js` compatibility layer
+
+The shared dialog layer replaces the Booking Pack's known browser-native confirmations for clearing drafts/forms, deleting saved drafts, resetting the Programme of Events, converting a grade/event to a straight Final, and downloading a Booking File despite review warnings. Legacy application alerts are also presented through the custom dialog layer.
+
+Google/browser account, permission or security prompts are platform UI and cannot be restyled by the Booking Pack.
 
 ## Competition contact for competitor enquiries
 
@@ -127,6 +142,8 @@ Frontend:
 - `multi-booking-drafts.js` — independent saved booking drafts
 - `terms-acceptance-final.js` — final terms acceptance guard
 - `booking-policy-final.js` / `booking-policy-final-core.js` — current booking policy compatibility layer
+- `waimarino-dialog.css` / `waimarino-dialog.js` — shared custom popup presentation/compatibility layer
+- `clear-form.js` — final frontend loader that also loads the shared dialog layer
 
 Google Apps Script source:
 
@@ -151,6 +168,8 @@ When server-side Apps Script changes are made:
 7. Keep the existing web app URL unless a new deployment is intentionally required.
 8. Record the new live version in `PROJECT_STATE.md` and `CHANGELOG.md`.
 
+Frontend-only GitHub Pages changes such as dialog styling do not require a Booking Receiver Apps Script deployment.
+
 ## Testing baseline
 
 After a material booking-flow change, test at least one complete booking and confirm:
@@ -158,6 +177,7 @@ After a material booking-flow change, test at least one complete booking and con
 - booking form still progresses normally;
 - Terms acceptance remains accepted through final submission;
 - multiple saved drafts remain independent;
+- custom confirmation dialogs do not change the underlying action being confirmed;
 - internal Waimarino email arrives with PDF + JSON;
 - organiser booking confirmation arrives with PDF;
 - Entry Manager competition record is created successfully;
