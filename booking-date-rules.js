@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoBookingDateRulesVersion) return;
-  window.__waimarinoBookingDateRulesVersion = '1.0.0';
+  window.__waimarinoBookingDateRulesVersion = '1.0.1';
 
   const MINIMUM_NOTICE_DAYS = 14;
   const CONTACT_EMAIL = 'Waimarinoshears@gmail.com';
@@ -62,6 +62,30 @@
     return document.getElementById('competitionDate');
   }
 
+  function ensureDateTimeGroup() {
+    const dateInput = getDateInput();
+    const timeInput = document.getElementById('startTime');
+    const dateField = dateInput?.closest('.field');
+    const timeField = timeInput?.closest('.field');
+    if (!dateInput || !timeInput || !dateField || !timeField) return null;
+
+    let group = document.getElementById('competitionDateTimeGroup');
+    if (!group) {
+      const parent = dateField.parentElement;
+      if (!parent) return null;
+      group = document.createElement('div');
+      group.id = 'competitionDateTimeGroup';
+      group.className = 'booking-date-time-group';
+      parent.insertBefore(group, dateField);
+      group.appendChild(dateField);
+      group.appendChild(timeField);
+    } else {
+      if (dateField.parentElement !== group) group.appendChild(dateField);
+      if (timeField.parentElement !== group) group.appendChild(timeField);
+    }
+    return group;
+  }
+
   function isDateInsideMinimum(value) {
     const text = String(value || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
@@ -71,6 +95,7 @@
   function ensureDateGuidance() {
     const input = getDateInput();
     const field = input?.closest('.field');
+    const group = ensureDateTimeGroup();
     if (!input || !field) return null;
 
     let notice = document.getElementById('competitionDateRuleNotice');
@@ -78,7 +103,6 @@
       notice = document.createElement('div');
       notice.id = 'competitionDateRuleNotice';
       notice.className = 'booking-date-rule-notice';
-      input.insertAdjacentElement('afterend', notice);
     }
 
     let error = document.getElementById('competitionDateRuleError');
@@ -86,6 +110,13 @@
       error = document.createElement('p');
       error.id = 'competitionDateRuleError';
       error.className = 'booking-date-rule-error hidden';
+    }
+
+    if (group) {
+      group.appendChild(notice);
+      group.appendChild(error);
+    } else {
+      input.insertAdjacentElement('afterend', notice);
       notice.insertAdjacentElement('afterend', error);
     }
 
@@ -103,9 +134,7 @@
 
     const minimum = minimumDateValue();
     ui.input.min = minimum;
-    ui.notice.innerHTML = `
-      <span class="booking-date-rule-mark" aria-hidden="true">14</span>
-      <span><strong>Minimum booking notice: 14 days.</strong> Dates before <strong>${longDate(minimum)}</strong> are unavailable for standard online booking.<br>If you need to discuss a competition inside 14 days, email <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>.</span>`;
+    ui.notice.innerHTML = `<strong>Minimum booking notice: 14 days.</strong> Dates before <strong>${longDate(minimum)}</strong> are unavailable for standard online booking.<br>If you need to discuss a competition inside 14 days, email <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>.`;
 
     const value = String(ui.input.value || '').trim();
     const invalid = isDateInsideMinimum(value);
@@ -207,11 +236,13 @@
     const style = document.createElement('style');
     style.id = 'bookingDateRulesStyle';
     style.textContent = `
-      .booking-date-rule-notice{display:flex;gap:10px;align-items:flex-start;margin-top:9px;padding:11px 12px;border-left:4px solid var(--brand-2,#EB1D27);border-radius:8px;background:#fff7f7;color:#3d2426;font-size:.92rem;line-height:1.45}
+      .booking-date-time-group{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+      .booking-date-time-group>.booking-date-rule-notice,.booking-date-time-group>.booking-date-rule-error{grid-column:1/-1}
+      .booking-date-rule-notice{margin-top:0;padding:11px 12px;border-left:4px solid var(--brand-2,#EB1D27);border-radius:8px;background:#fff7f7;color:#3d2426;font-size:.92rem;line-height:1.45}
       .booking-date-rule-notice a,.booking-date-rule-error a{color:inherit;font-weight:800}
-      .booking-date-rule-mark{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--brand-2,#EB1D27);color:#fff;font-size:.78rem;font-weight:900}
-      .booking-date-rule-error{margin:8px 0 0;padding:10px 12px;border:1px solid #db8e94;border-radius:8px;background:#fff3f3;color:#7f1119;line-height:1.4}
+      .booking-date-rule-error{margin:0;padding:10px 12px;border:1px solid #db8e94;border-radius:8px;background:#fff3f3;color:#7f1119;line-height:1.4}
       #competitionDate.booking-date-rule-invalid{border-color:#b4232d!important;box-shadow:0 0 0 2px rgba(180,35,45,.12)}
+      @media(max-width:560px){.booking-date-time-group{grid-template-columns:1fr}}
     `;
     document.head.appendChild(style);
   }
@@ -223,6 +254,7 @@
 
     const input = getDateInput();
     if (!input) return;
+    ensureDateTimeGroup();
     updateDateRuleDisplay();
     input.addEventListener('input', () => updateDateRuleDisplay());
     input.addEventListener('change', () => updateDateRuleDisplay());
