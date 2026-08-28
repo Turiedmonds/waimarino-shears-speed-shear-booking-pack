@@ -308,7 +308,26 @@
     window.setTimeout(applyCurrentTermsVersion, 3500);
   }
 
+  function loadWaimarinoDialogLayer() {
+    if (!document.getElementById('waimarinoDialogStyles')) {
+      const link = document.createElement('link');
+      link.id = 'waimarinoDialogStyles';
+      link.rel = 'stylesheet';
+      link.href = 'waimarino-dialog.css?v=1.0.0';
+      document.head.appendChild(link);
+    }
+
+    if (!document.getElementById('waimarinoDialogScript')) {
+      const script = document.createElement('script');
+      script.id = 'waimarinoDialogScript';
+      script.src = 'waimarino-dialog.js?v=1.0.0';
+      script.async = false;
+      document.body.appendChild(script);
+    }
+  }
+
   installClearButton();
   installConfigurationUiPolish();
   installTermsVersionConsistency();
+  loadWaimarinoDialogLayer();
 })();
