@@ -4,6 +4,13 @@ This changelog records meaningful completed changes. Keep it current whenever fu
 
 ## 28 August 2026
 
+### Uniform Waimarino custom dialogs — production verified
+
+- Production Booking Pack browser testing completed successfully after GitHub Pages publication.
+- Confirmed the new Waimarino custom-dialog layer displays and behaves correctly in the live booking form.
+- The underlying booking actions remain unchanged; this was a presentation/interaction replacement for browser-native popup UI.
+- The Booking Pack popup standard can now be treated as live and verified.
+
 ### Uniform Waimarino custom dialogs
 
 - Added `waimarino-dialog.css` and `waimarino-dialog.js` as the Booking Pack shared modal layer.
@@ -19,7 +26,8 @@ This changelog records meaningful completed changes. Keep it current whenever fu
 - Existing Grade / Event Round Format help and Saved Drafts dialogs are visually harmonised by the same stylesheet.
 - Dialog standard: white rounded card, Waimarino red top accent, dark overlay, consistent heading/actions, with destructive confirmation clearly shown in red.
 - Google/browser security and authorisation prompts remain platform UI and cannot be restyled.
-- This is a GitHub Pages frontend change only; no Booking Receiver Apps Script deployment is required. Production publication/browser smoke testing remains pending.
+- This is a GitHub Pages frontend change only; no Booking Receiver Apps Script deployment is required.
+- Production browser smoke testing subsequently passed as recorded above.
 
 ### Booking contact and competitor-contact workflow
 
