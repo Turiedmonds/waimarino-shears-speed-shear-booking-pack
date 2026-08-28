@@ -1,6 +1,6 @@
 (() => {
-  const HIRE_OPTIONS_VERSION = '1.0.4';
-  const FINAL_TERMS_VERSION_ = '22 August 2026';
+  const HIRE_OPTIONS_VERSION = '1.0.5';
+  const FINAL_TERMS_VERSION_ = '28 August 2026';
   const FINAL_APP_VERSION_ = '1.5.1';
   const TRAVEL_POLICY_ = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
   let activeHirePack_ = null;
@@ -202,8 +202,8 @@
   };
 
   const originalBuildInternalEmailHtml_ = buildInternalEmailHtml_;
-  buildInternalEmailHtml_ = function hireAwareBuildInternalEmailHtml_(pack) {
-    const html = originalBuildInternalEmailHtml_(pack);
+  buildInternalEmailHtml_ = function hireAwareBuildInternalEmailHtml_(pack, entryManagerHandoff) {
+    const html = originalBuildInternalEmailHtml_(pack, entryManagerHandoff);
     const stands = normaliseHireStands_(pack && pack.competitionSetup && pack.competitionSetup.stands);
     const branding = !!(pack && pack.hire && pack.hire.competitionBranding);
     const extraRows = [
