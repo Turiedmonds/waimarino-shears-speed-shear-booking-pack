@@ -1,6 +1,6 @@
 (() => {
-  if (window.__waimarinoBookingPolicyLoaderVersion === '1.2.3') return;
-  window.__waimarinoBookingPolicyLoaderVersion = '1.2.3';
+  if (window.__waimarinoBookingPolicyLoaderVersion === '1.2.4') return;
+  window.__waimarinoBookingPolicyLoaderVersion = '1.2.4';
 
   const CURRENT_TERMS_VERSION = '28 August 2026';
   const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypCyJhLAup1GugHAqIhPZnxKRFZ1Eoaq372Msmv9PL19cu8dvSI2NnSaj_ZajTsdf2YA/exec';
@@ -46,10 +46,9 @@
     if (!button) return;
 
     const input = document.getElementById('termsAccepted');
-    if (!input?.checked) return;
+    const acceptedByUser = Boolean(window.__waimarinoTermsAcceptedByUser);
+    if (!input?.checked && !acceptedByUser) return;
 
-    // Take ownership of a valid checked submission before older compatibility
-    // listeners can reset the Terms checkbox during validation.
     event.preventDefault();
     event.stopImmediatePropagation();
     restoreAcceptedState(input);
@@ -112,8 +111,8 @@
 
   loadScript('booking-policy-final-core.js?v=1.0.1', 'bookingPolicyFinalCoreScript', () => {
     loadScript('competition-contact.js?v=1.0.0', 'competitionContactScript', () => {
-      loadScript('terms-acceptance-final.js?v=1.0.0', 'termsAcceptanceFinalScript', () => {
-        loadScript('multi-booking-drafts.js?v=1.0.0', 'multiBookingDraftsScript', null);
+      loadScript('terms-acceptance-final.js?v=1.1.0', 'termsAcceptanceFinalScript', () => {
+        loadScript('multi-booking-drafts.js?v=1.0.1', 'multiBookingDraftsScript', null);
       });
     });
   });
