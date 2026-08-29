@@ -36,7 +36,7 @@ The browser-based hire/booking and competition-configuration pack for the Waimar
 
 ## Production baseline
 
-Current verified production state as at 29 August 2026:
+Current verified production state as at 30 August 2026:
 
 - Effective frontend/backend app version: **1.5.1** via the final Hire Options compatibility layer.
 - Hire Options version: **1.0.5**.
@@ -45,6 +45,9 @@ Current verified production state as at 29 August 2026:
 - Booking Receiver endpoint remains the existing production web-app deployment; do not create a replacement deployment unless intentionally required.
 - Custom domain `bookings.waimarinoshears.com` is configured through Wix DNS/GitHub Pages.
 - The shared Waimarino custom-dialog layer is published live and has been manually smoke-tested successfully in the production Booking Pack.
+- Booking Pack native `<select>` popup presentation has now been replaced with Waimarino Shears custom selection dialogs while retaining the original select controls as the underlying source of truth.
+- The custom select layer is live through GitHub Pages; manual iPad checks passed for Hire setup, competition branding, competitor entry method and digital-entry selection.
+- Native competition date/time inputs remain unchanged and continue using their existing device/browser pickers and validation behaviour.
 - The shared `ENTRY_MANAGER_SHARED_SECRET` was rotated on **29 August 2026** in both the Booking Receiver and Speed Shear Entry Manager Apps Script projects. The replacement value is intentionally not recorded in GitHub or chat.
 - Step 1 Hire Information now signs off **“Noho ora mai,”** followed by **Waimarino Shears**.
 - Step 1 **What we provide** now includes: **Online competitor entry and competition entry management system, allowing competitors to enter online, organisers to add manual entries, and manage competitor registrations in one place.**
@@ -60,17 +63,20 @@ The Speed Shear ecosystem is standardising user-controlled popup dialogs around 
 - **Waimarino Shears** eyebrow/branding;
 - consistent heading, body copy and button spacing;
 - red confirmation button only for destructive/warning actions;
-- browser-native `alert()` / `confirm()` should not be used where the system controls the interface.
+- browser-native `alert()` / `confirm()` should not be used where the system controls the interface;
+- browser-native `<select>` option popups should be replaced with the Waimarino custom picker where the Booking Pack controls the field.
 
 Booking Pack implementation:
 
 - `waimarino-dialog.css` — shared modal styling;
-- `waimarino-dialog.js` — reusable dialog API plus compatibility bridge for legacy native confirmation points;
+- `waimarino-dialog.js` — reusable dialog API, compatibility bridge for legacy native confirmation points, and the custom select picker layer;
 - `clear-form.js` loads the shared dialog CSS/JS layer after the existing Booking Pack UI scripts.
 
 The compatibility bridge intentionally preserves the existing tested actions and intercepts the known native-browser popup paths before replaying the original action after the user confirms.
 
-Current Booking Pack actions covered:
+For select fields, the original `<select>` remains in the DOM and remains the authoritative form control. The custom picker only replaces how the user chooses an option. A custom choice updates the original select value and dispatches the existing `input` and `change` events, so existing downstream logic continues to run normally. Dynamic select controls added later in the booking flow are also detected and wrapped.
+
+Current Booking Pack confirmation/error actions covered:
 
 - Clear Form / clear current draft;
 - Delete Saved Draft;
@@ -79,9 +85,21 @@ Current Booking Pack actions covered:
 - Download Booking File despite review warnings;
 - legacy Booking File open error alerts.
 
+Current Booking Pack select areas covered include:
+
+- Hire setup;
+- optional competition branding;
+- competitor entry method;
+- digital-entry collection;
+- stand count;
+- board judge selection;
+- clean-shear selection;
+- copy-round-format source;
+- selectable round names.
+
 Existing custom dialogs such as Grade / Event Round Format help and Saved Drafts are visually harmonised by the same stylesheet.
 
-Production browser testing has confirmed the new dialog presentation works correctly. Google/browser security or authorisation prompts are outside the application and cannot be restyled.
+Production browser testing has confirmed the custom confirmation/error dialog presentation works correctly. On 30 August 2026, manual iPad checking also confirmed the new custom select presentation on several Step 2 fields. Google/browser security or authorisation prompts are outside the application and cannot be restyled.
 
 ## Confirmed booking workflow
 
