@@ -1,6 +1,6 @@
 # PROJECT STATE — Waimarino Shears Speed Shear Booking Pack
 
-**Last updated:** 29 August 2026
+**Last updated:** 30 August 2026
 
 This file is the authoritative current-state handoff for future ChatGPT/Codex sessions.
 
@@ -30,7 +30,7 @@ Purpose: browser-based hire/booking and competition-configuration pack for the W
 
 ## Production baseline
 
-Current verified production state as at 29 August 2026:
+Current verified production state as at 30 August 2026:
 
 - Effective frontend/backend app version: **1.5.1** via the final Hire Options compatibility layer.
 - Hire Options version: **1.0.5**.
@@ -40,7 +40,8 @@ Current verified production state as at 29 August 2026:
 - Custom domain `bookings.waimarinoshears.com` is configured through Wix DNS/GitHub Pages.
 - Shared Waimarino custom-dialog layer is published and smoke-tested.
 - Shared `ENTRY_MANAGER_SHARED_SECRET` was rotated on 29 August 2026 in both Booking Receiver and Speed Shear Entry Manager; never record or reveal its value.
-- Step 1 Hire Information introduction now signs off **“Noho ora mai,”** followed by **Waimarino Shears**; this is frontend-only and awaits normal GitHub Pages publication/visual check.
+- Step 1 Hire Information introduction signs off **“Noho ora mai,”** followed by **Waimarino Shears**.
+- Step 1 **What we provide** now describes the supplied **online competitor entry and competition entry management system**, including online competitor entry, organiser-added manual entries and organiser management of competitor registrations in one place.
 
 ## Uniform custom-dialog standard
 
@@ -78,15 +79,19 @@ Step 1 introduction closing text is:
 **Noho ora mai,**  
 **Waimarino Shears**
 
-This replaces the previous **Ngā mihi nui,** wording only; no other introduction text or booking logic changed.
+Step 1 **What we provide** now includes:
+
+**Online competitor entry and competition entry management system, allowing competitors to enter online, organisers to add manual entries, and manage competitor registrations in one place**
+
+This replaces the previous **“Competition entry forms, if required, to assist with competitor entries”** wording. No Entry Manager or Booking Receiver logic changed.
 
 ## Deployment notes
 
-Frontend changes publish through GitHub Pages. The introduction wording change does not require a Booking Receiver Apps Script deployment.
+Frontend changes publish through GitHub Pages. These wording-only changes do not require a Booking Receiver Apps Script deployment.
 
 ## Next planned work
 
-1. After GitHub Pages publishes the Step 1 wording change, visually confirm **Noho ora mai, Waimarino Shears** appears correctly.
+1. After GitHub Pages publishes the latest Step 1 wording, visually confirm the new entry-management description appears correctly under **What we provide**.
 2. Continue normal Booking Pack regression checks only if another issue is found.
 
 For detailed historical changes, see `CHANGELOG.md`.
