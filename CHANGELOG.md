@@ -4,6 +4,11 @@ This changelog records meaningful completed changes. Keep it current whenever fu
 
 ## 29 August 2026
 
+### Hire Information introduction sign-off
+
+- Changed the Step 1 introduction sign-off from **“Ngā mihi nui,”** to **“Noho ora mai,”** above **Waimarino Shears**.
+- This is a frontend wording-only change; no Booking Receiver Apps Script deployment is required.
+
 ### Booking Receiver ↔ Entry Manager shared secret rotated
 
 - Rotated the `ENTRY_MANAGER_SHARED_SECRET` Script Property in the **Waimarino Speed Shear Booking Receiver** Apps Script project.
@@ -46,8 +51,7 @@ This changelog records meaningful completed changes. Keep it current whenever fu
 
 - Added dedicated **Competition contact for competitor enquiries** workflow.
 - Booking contact can be reused or replaced with a separate competition contact.
-- Selected competition contact is passed into the Speed Shear Entries/Entry Manager setup payload.
-- Public competitor form and automatic entry emails use the selected competition contact.
+- Selected competition contact is passed into the Entry Manager handoff and becomes the organiser contact on the public competitor-entry form and automatic entry emails.
 - Clarified system roles: Waimarino Shears is the system provider/operator; the competition organiser remains responsible for entry administration.
 
 ### Multiple booking drafts
@@ -57,40 +61,3 @@ This changelog records meaningful completed changes. Keep it current whenever fu
 - Prevented one competition draft from overwriting another in the same browser.
 - Retained the legacy localStorage key only as a compatibility mirror.
 - Tested two simultaneous booking drafts successfully.
-
-### Terms acceptance
-
-- Fixed a compatibility race that could clear the accepted Hire Terms during final validation/submission.
-- Locked current terms effective date to **28 August 2026** across the active compatibility layers.
-- Current final terms guard uses `terms-acceptance-final.js` v1.1.0 and `booking-policy-final.js` v1.2.4.
-- Full booking submission retest passed.
-
-### Entry Manager handoff
-
-- Connected Booking Receiver to the separate Speed Shear Entries backend using Script Properties for endpoint + shared secret.
-- Added authorised competition setup handoff including Booking Reference, competition details, selected competition contact, grades/events and Programme of Events.
-- Added private/public Entry Manager links/status to the internal Waimarino Shears booking email.
-- Fixed `HireOptions.gs` wrapper so it forwards the `entryManagerHandoff` argument rather than dropping it.
-- Hire Options moved to **1.0.5** with final app version **1.5.1** and terms version **28 August 2026**.
-
-### Production deployment
-
-- Booking Receiver deployed as **Version 22** after the Hire Options handoff fix.
-- Booking Receiver deployed as **Version 23** after final Entry Manager handoff/link updates.
-- Existing production web-app deployment URL retained.
-
-### End-to-end verification
-
-- Booking **WS-2026-0016 — Speedshear o ngā Taniwha** successfully submitted.
-- Internal booking email, PDF and timing JSON received.
-- Entry Manager competition record created successfully.
-- Private and public competition links opened correctly.
-- Public entry submission, competitor receipt, organiser notification and Waimarino Shears backup email were verified.
-- Entry Manager custom domain later verified as `entries.waimarinoshears.com`; old GitHub-hosted links redirect correctly.
-
-### Documentation
-
-- Replaced stale README production details with the current live baseline.
-- Added `PROJECT_STATE.md` as the authoritative future-session handoff.
-- Added this changelog.
-- Added standing documentation rule: meaningful changes must update project state and changelog before completion.
