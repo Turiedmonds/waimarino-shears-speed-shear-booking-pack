@@ -20,7 +20,7 @@ Before making changes, read these files in this order:
 
 ## Current production baseline
 
-As at **28 August 2026**:
+As at **30 August 2026**:
 
 - Effective app version: **1.5.1**
 - Hire options layer: **1.0.5**
@@ -28,7 +28,9 @@ As at **28 August 2026**:
 - Booking Receiver Apps Script live deployment: **Version 23**
 - Booking Pack custom domain: **bookings.waimarinoshears.com**
 - Entry Manager handoff is live and connected to the separate Speed Shear Entries system.
-- Uniform Waimarino custom-dialog frontend source has been added; production GitHub Pages verification is pending.
+- Uniform Waimarino custom confirmation/error dialogs are live and production verified.
+- Booking Pack `<select>` controls now use Waimarino Shears custom option dialogs rather than browser/device-native option popups. The original selects remain underneath as the actual form controls so existing booking logic continues to run through the same `input` / `change` events.
+- Native competition date/time pickers remain unchanged.
 
 See `PROJECT_STATE.md` for the full verified state and outstanding work.
 
@@ -44,7 +46,7 @@ The organiser accepts the Hire Terms & Conditions before submission. A submitted
 
 ## Uniform dialogs
 
-User-controlled confirmation/error popups use the same Waimarino Shears visual style across the Speed Shear web tools: white rounded panel, red top accent, dark overlay, consistent wording/actions and destructive buttons clearly marked in red.
+User-controlled confirmation/error popups and select-option pickers use the same Waimarino Shears visual style across the Speed Shear web tools: white rounded panel, red top accent, dark overlay, consistent wording/actions and destructive buttons clearly marked in red.
 
 Booking Pack implementation:
 
@@ -54,7 +56,9 @@ Booking Pack implementation:
 
 The shared dialog layer replaces the Booking Pack's known browser-native confirmations for clearing drafts/forms, deleting saved drafts, resetting the Programme of Events, converting a grade/event to a straight Final, and downloading a Booking File despite review warnings. Legacy application alerts are also presented through the custom dialog layer.
 
-Google/browser account, permission or security prompts are platform UI and cannot be restyled by the Booking Pack.
+The same frontend layer now provides custom option dialogs for Booking Pack `<select>` controls such as Hire setup, branding, competition entry method, digital entries, judging and round-format selections. The underlying select values and existing listeners are preserved rather than replacing the booking data model or workflow logic.
+
+Google/browser account, permission or security prompts are platform UI and cannot be restyled by the Booking Pack. Competition date and start time are deliberately left on their existing native picker/validation path.
 
 ## Competition contact for competitor enquiries
 
@@ -142,7 +146,7 @@ Frontend:
 - `multi-booking-drafts.js` — independent saved booking drafts
 - `terms-acceptance-final.js` — final terms acceptance guard
 - `booking-policy-final.js` / `booking-policy-final-core.js` — current booking policy compatibility layer
-- `waimarino-dialog.css` / `waimarino-dialog.js` — shared custom popup presentation/compatibility layer
+- `waimarino-dialog.css` / `waimarino-dialog.js` — shared custom popup and select-picker presentation/compatibility layer
 - `clear-form.js` — final frontend loader that also loads the shared dialog layer
 
 Google Apps Script source:
@@ -178,6 +182,7 @@ After a material booking-flow change, test at least one complete booking and con
 - Terms acceptance remains accepted through final submission;
 - multiple saved drafts remain independent;
 - custom confirmation dialogs do not change the underlying action being confirmed;
+- custom select dialogs leave the original form value/listener behaviour intact;
 - internal Waimarino email arrives with PDF + JSON;
 - organiser booking confirmation arrives with PDF;
 - Entry Manager competition record is created successfully;
