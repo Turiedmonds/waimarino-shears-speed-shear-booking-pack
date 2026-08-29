@@ -4,6 +4,17 @@ This changelog records meaningful completed changes. Keep it current whenever fu
 
 ## 30 August 2026
 
+### Custom Waimarino select dialogs
+
+- Replaced the Booking Pack's browser-native `<select>` popup presentation with Waimarino Shears custom selection dialogs.
+- The original `<select>` elements remain the source of truth and are kept in the page, hidden visually behind the custom control.
+- Selecting an option in the custom dialog updates the original select value and dispatches its existing `input` / `change` events, preserving existing hire setup, branding, entries, judging, round-format, draft and validation logic.
+- Dynamic select controls created later in the booking flow are also detected and wrapped automatically.
+- Native date and time inputs were deliberately left unchanged because they have separate validation/interaction behaviour.
+- GitHub Pages deployment for merge commit `cd0852345e0ce7cc934e8013f3e3f60de2632657` completed successfully.
+- Manual iPad browser checking confirmed the custom dialogs display correctly for Hire setup, competition branding, competitor entry method and digital-entry selection.
+- This was a frontend GitHub Pages change only; no Booking Receiver Apps Script deployment was required.
+
 ### Hire Information wording and index repair
 
 - Changed the Step 1 introduction sign-off from **“Ngā mihi nui,”** to **“Noho ora mai,”** above **Waimarino Shears**.
