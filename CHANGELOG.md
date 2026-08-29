@@ -2,6 +2,14 @@
 
 This changelog records meaningful completed changes. Keep it current whenever functionality, workflow, deployment, URLs, policy wording or architecture changes.
 
+## 30 August 2026
+
+### Hire Information entry-management wording
+
+- Replaced the outdated **“Competition entry forms, if required”** item under **What we provide**.
+- The Booking Pack now describes the actual supplied service as an **online competitor entry and competition entry management system**, allowing competitors to enter online while organisers can add manual entries and manage competitor registrations in one place.
+- This is a frontend wording-only change and does not alter Entry Manager behaviour or require a Booking Receiver Apps Script deployment.
+
 ## 29 August 2026
 
 ### Hire Information introduction sign-off
