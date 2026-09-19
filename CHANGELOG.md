@@ -2,6 +2,21 @@
 
 This changelog records meaningful completed changes. Keep it current whenever functionality, workflow, deployment, URLs, policy wording or architecture changes.
 
+## 20 September 2026
+
+### Event System booking-request handoff prepared in source
+
+- Added `google-apps-script/EventSystemHandoff.gs`.
+- Booking submission can now, once configured/deployed, send the stable Booking Reference and safe operational booking subset to the Waimarino Event System.
+- Added explicit deposit amount/currency to the normalised booking commercial data for the handoff.
+- Internal Waimarino booking email can report whether the Event System handoff succeeded.
+- Updated the Hire Options wrapper to forward the Event System handoff status as well as the existing Entry Manager handoff status.
+- The handoff is designed to fail safely: an Event System outage does not make the organiser's booking submission fail.
+- The handoff records a **booking request**, not a confirmed Event.
+- Production Booking Receiver deployment has **not** been changed. Version 23 and the current web-app URL remain the verified production baseline.
+- Required Script Properties are not yet configured: `EVENT_SYSTEM_BOOKING_ENDPOINT` and `EVENT_SYSTEM_SHARED_SECRET`.
+- Do not deploy the Booking Receiver changes until Turi explicitly approves that production deployment step.
+
 ## 30 August 2026
 
 ### Custom Waimarino select dialogs
