@@ -34,6 +34,30 @@ Purpose:
 
 The browser-based hire/booking and competition-configuration pack for the Waimarino Shears Speed Shear system. It collects the information needed for hire administration, generates the booking record/PDF and timing import, and creates the corresponding competition in the separate Speed Shear Entries system.
 
+## Event System booking handoff prepared in source — 20 September 2026
+
+The Booking Receiver source now includes a second server-to-server handoff for the Waimarino Event System.
+
+Prepared source:
+- `google-apps-script/EventSystemHandoff.gs`
+- `google-apps-script/Code.gs`
+- `google-apps-script/HireOptions.gs`
+
+The handoff sends only the stable Booking Reference and the operational subset needed for Event/deposit automation: competition name/date/start time/venue, organiser contact and the configured deposit amount/currency. The full Booking Pack/commercial agreement remains in this system.
+
+Target workflow is now explicitly:
+**booking request → Waimarino review → deposit invoice → Stripe deposit payment → confirmed booking → linked External Service / Hire Event/calendar update**.
+
+The initial booking request is never treated as a confirmed Event.
+
+Configuration is intentionally absent until development integration testing:
+- `EVENT_SYSTEM_BOOKING_ENDPOINT`
+- `EVENT_SYSTEM_SHARED_SECRET`
+
+The Event System side uses the matching Cloudflare secret `BOOKING_PACK_SHARED_SECRET`.
+
+**No production Booking Receiver Apps Script deployment has been changed. Active production deployment remains Version 23 and its existing URL remains unchanged.** Do not publish these source changes until Turi explicitly approves the Booking Receiver deployment step after development setup/testing is ready.
+
 ## Production baseline
 
 Current verified production state as at 30 August 2026:
