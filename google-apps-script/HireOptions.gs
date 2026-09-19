@@ -202,8 +202,8 @@
   };
 
   const originalBuildInternalEmailHtml_ = buildInternalEmailHtml_;
-  buildInternalEmailHtml_ = function hireAwareBuildInternalEmailHtml_(pack, entryManagerHandoff) {
-    const html = originalBuildInternalEmailHtml_(pack, entryManagerHandoff);
+  buildInternalEmailHtml_ = function hireAwareBuildInternalEmailHtml_(pack, entryManagerHandoff, eventSystemHandoff) {
+    const html = originalBuildInternalEmailHtml_(pack, entryManagerHandoff, eventSystemHandoff);
     const stands = normaliseHireStands_(pack && pack.competitionSetup && pack.competitionSetup.stands);
     const branding = !!(pack && pack.hire && pack.hire.competitionBranding);
     const extraRows = [
