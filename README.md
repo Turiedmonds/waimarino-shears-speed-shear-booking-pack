@@ -89,6 +89,27 @@ Example:
 
 `WS-2026-0016`
 
+## Event System handoff (prepared, not deployed)
+
+The Booking Receiver source now has a prepared handoff to the separate Waimarino Event System.
+
+When it is later configured and deliberately deployed, a submitted Booking Request will also create/update a **Speed Shear booking request** in Events Manager using the same stable Booking Reference. This is only the review stage. It does not confirm the booking.
+
+The intended later flow is:
+
+1. Booking Request submitted
+2. Waimarino reviews availability and requested setup
+3. Waimarino approves the deposit stage
+4. Stripe deposit invoice is sent automatically
+5. deposit payment confirms the booking
+6. Event System creates/updates the linked **External Service / Hire** Event and calendar record
+
+Required Booking Receiver Script Properties will be:
+- `EVENT_SYSTEM_BOOKING_ENDPOINT`
+- `EVENT_SYSTEM_SHARED_SECRET`
+
+The current production Booking Receiver remains Version 23. The prepared source has **not** been deployed to production yet.
+
 ## Entry Manager handoff
 
 After a successful booking submission, the Booking Receiver sends an authorised competition-setup payload to the separate Speed Shear Entries backend.
