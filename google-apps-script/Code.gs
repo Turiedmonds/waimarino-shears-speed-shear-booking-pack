@@ -26,8 +26,9 @@ function doPost(e) {
     saveBookingFiles_(files);
 
     const entryManagerHandoff = entryManagerHandoffForBooking_(pack);
+    const eventSystemHandoff = eventSystemHandoffForBooking_(pack);
 
-    sendInternalBookingEmail_(pack, files, entryManagerHandoff);
+    sendInternalBookingEmail_(pack, files, entryManagerHandoff, eventSystemHandoff);
     sendOrganiserConfirmation_(pack, files.pdf);
 
     return jsonResponse_({
@@ -75,6 +76,8 @@ function normalisePack_(pack) {
   pack.booking = pack.booking || {};
   pack.booking.termsVersion = SETTINGS.termsEffectiveLabel;
   pack.commercial = pack.commercial || {};
+  pack.commercial.depositAmountMinor = 30000;
+  pack.commercial.currency = 'NZD';
   pack.commercial.balanceDueDaysAfterEvent = 7;
   pack.competitionSetup = pack.competitionSetup || {};
   pack.competitionSetup.program = normaliseProgramme_(pack.competitionSetup.program);
@@ -436,20 +439,24 @@ function getOrCreateFolder_(name) {
   return existing.hasNext() ? existing.next() : DriveApp.createFolder(name);
 }
 
-function sendInternalBookingEmail_(pack, files, entryManagerHandoff) {
+function sendInternalBookingEmail_(pack, files, entryManagerHandoff, eventSystemHandoff) {
   const reference = pack.identity && pack.identity.bookingReference || '';
   const subject = `New Speed Shear Booking Request — ${reference} — ${pack.booking.competitionName}`;
-  const html = buildInternalEmailHtml_(pack, entryManagerHandoff);
+  const html = buildInternalEmailHtml_(pack, entryManagerHandoff, eventSystemHandoff);
 
   const entryManagerStatus =
     entryManagerHandoff && entryManagerHandoff.ok === true
       ? ' Entry Manager competition record created successfully.'
       : ' Entry Manager setup needs attention.';
+  const eventSystemStatus =
+    eventSystemHandoff && eventSystemHandoff.ok === true
+      ? ' Event System booking request recorded successfully.'
+      : ' Event System handoff needs attention.';
 
   MailApp.sendEmail({
     to: SETTINGS.receiverEmail,
     subject,
-    body: `New booking request received for ${pack.booking.competitionName}. Booking Reference: ${reference}. The PDF booking pack and timing-system import file are attached.${entryManagerStatus}`,
+    body: `New booking request received for ${pack.booking.competitionName}. Booking Reference: ${reference}. The PDF booking pack and timing-system import file are attached.${entryManagerStatus}${eventSystemStatus}`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: pack.booking.email,
@@ -489,7 +496,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
   });
 }
 
-function buildInternalEmailHtml_(pack, entryManagerHandoff) {
+function buildInternalEmailHtml_(pack, entryManagerHandoff, eventSystemHandoff) {
   const judging = pack.competitionSetup && pack.competitionSetup.judging || {};
   return `
     <div style="font-family:Arial,sans-serif;color:#111;max-width:720px">
@@ -512,6 +519,7 @@ function buildInternalEmailHtml_(pack, entryManagerHandoff) {
       </table>
 
       ${entryManagerInternalEmailBlock_(entryManagerHandoff)}
+      ${eventSystemInternalEmailBlock_(eventSystemHandoff)}
 
       <p style="margin-top:18px"><strong>Status:</strong> Booking request received — awaiting review and deposit invoice.</p>
     </div>`;
