@@ -2,6 +2,14 @@
 
 This changelog records meaningful completed changes. Keep it current whenever functionality, workflow, deployment, URLs, policy wording or architecture changes.
 
+## 2026-09-23 — Booking Receiver Version 24: Event System handoff
+
+- Updated the existing production Booking Receiver web-app deployment in place to Version 24.
+- Kept the existing deployment ID and web-app URL.
+- Production now includes the prepared `EventSystemHandoff.gs` path so a submitted booking request can create/update the matching Speed Shear booking request in the Event System.
+- The initial handoff remains request/review state only; it does not confirm a booking or create a confirmed Event.
+- Live booking deposits remain disabled in the Event System pending test acceptance.
+
 ## 20 September 2026
 
 ### Event System booking-request handoff prepared in source
