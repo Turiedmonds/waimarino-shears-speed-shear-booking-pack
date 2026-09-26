@@ -5,12 +5,9 @@ const SETTINGS = {
   driveFolderName: 'Waimarino Speed Shear Bookings',
   logoUrl: 'https://turiedmonds.github.io/waimarino-shears-speed-shear-booking-pack/assets/Waimarino%20Shears%20Logo.png',
   brandRed: '#EB1D27',
-  termsEffectiveLabel: '27 September 2026',
-  currentAppVersion: '1.5.2',
-  timingImportSchemaVersion: 2,
-  hireAmountMinor: 75000,
-  depositBaseMinor: 30000,
-  gstRateBps: 1500
+  termsEffectiveLabel: '28 August 2026',
+  currentAppVersion: '1.5.0',
+  timingImportSchemaVersion: 2
 };
 
 function doGet() {
@@ -72,52 +69,14 @@ function normaliseProgramme_(program) {
     }));
 }
 
-function speedShearPaymentSplit_() {
-  const hireBaseMinor = Number(SETTINGS.hireAmountMinor);
-  const depositBaseMinor = Number(SETTINGS.depositBaseMinor);
-  const gstRateBps = Number(SETTINGS.gstRateBps);
-  const totalGstMinor = Math.round((hireBaseMinor * gstRateBps) / 10000);
-  const depositGstMinor = Math.round((depositBaseMinor * gstRateBps) / 10000);
-  const balanceBaseMinor = hireBaseMinor - depositBaseMinor;
-  const balanceGstMinor = totalGstMinor - depositGstMinor;
-  return {
-    hireBaseMinor,
-    gstRateBps,
-    totalGstMinor,
-    bookingTotalMinor: hireBaseMinor + totalGstMinor,
-    depositBaseMinor,
-    depositGstMinor,
-    depositTotalMinor: depositBaseMinor + depositGstMinor,
-    balanceBaseMinor,
-    balanceGstMinor,
-    balanceTotalMinor: balanceBaseMinor + balanceGstMinor
-  };
-}
-
-function moneyMinor_(minor, alwaysCents) {
-  const value = Number(minor || 0) / 100;
-  const digits = alwaysCents || !Number.isInteger(value) ? 2 : 0;
-  return 'NZ$' + value.toFixed(digits);
-}
-
 function normalisePack_(pack) {
   if (!pack || typeof pack !== 'object') return pack;
-  const split = speedShearPaymentSplit_();
   pack.appVersion = SETTINGS.currentAppVersion;
   pack.identity = pack.identity || {};
   pack.booking = pack.booking || {};
   pack.booking.termsVersion = SETTINGS.termsEffectiveLabel;
   pack.commercial = pack.commercial || {};
-  pack.commercial.hireAmountMinor = split.hireBaseMinor;
-  pack.commercial.gstRateBps = split.gstRateBps;
-  pack.commercial.totalGstMinor = split.totalGstMinor;
-  pack.commercial.bookingTotalMinor = split.bookingTotalMinor;
-  pack.commercial.depositAmountMinor = split.depositBaseMinor;
-  pack.commercial.depositGstMinor = split.depositGstMinor;
-  pack.commercial.depositInvoiceTotalMinor = split.depositTotalMinor;
-  pack.commercial.balanceAmountMinor = split.balanceBaseMinor;
-  pack.commercial.balanceGstMinor = split.balanceGstMinor;
-  pack.commercial.balanceInvoiceTotalMinor = split.balanceTotalMinor;
+  pack.commercial.depositAmountMinor = 30000;
   pack.commercial.currency = 'NZD';
   pack.commercial.balanceDueDaysAfterEvent = 7;
   pack.competitionSetup = pack.competitionSetup || {};
@@ -246,7 +205,6 @@ function buildBookingFiles_(pack) {
 }
 
 function createBookingDocument_(pack) {
-  const split = speedShearPaymentSplit_();
   const title = `${pack.booking.competitionName || 'Speed Shear'} — Booking Pack`;
   const doc = DocumentApp.create(title);
   const body = doc.getBody();
@@ -263,7 +221,7 @@ function createBookingDocument_(pack) {
   heading.setForegroundColor('#111111').setSpacingBefore(2).setSpacingAfter(5);
   body.appendHorizontalRule();
 
-  const status = body.appendParagraph(`BOOKING REQUEST — NOT CONFIRMED UNTIL THE ${moneyMinor_(split.depositTotalMinor)} DEPOSIT INVOICE HAS BEEN PAID`);
+  const status = body.appendParagraph('BOOKING REQUEST — NOT CONFIRMED UNTIL THE $300 DEPOSIT HAS BEEN PAID');
   status.setBold(true).setForegroundColor(SETTINGS.brandRed).setFontSize(10).setSpacingBefore(4).setSpacingAfter(7);
 
   appendSection_(body, 'Booking details', [
@@ -277,10 +235,9 @@ function createBookingDocument_(pack) {
   ]);
 
   appendSection_(body, 'Booking cost', [
-    ['Hire fee', `${moneyMinor_(split.hireBaseMinor)} + ${moneyMinor_(split.totalGstMinor, true)} GST = ${moneyMinor_(split.bookingTotalMinor, true)} total`],
-    ['Deposit invoice', `${moneyMinor_(split.depositBaseMinor)} deposit + ${moneyMinor_(split.depositGstMinor)} GST = ${moneyMinor_(split.depositTotalMinor)} total — due no later than 14 days before the event`],
-    ['Final balance invoice', `${moneyMinor_(split.balanceBaseMinor)} remaining hire + ${moneyMinor_(split.balanceGstMinor, true)} GST = ${moneyMinor_(split.balanceTotalMinor, true)} total — payable within 7 days after completion of the event`],
-    ['GST explanation', `GST is split across the two hire payments and totals ${moneyMinor_(split.totalGstMinor, true)}. It is not charged twice.`],
+    ['Hire fee', 'NZ$750 + GST'],
+    ['Deposit', 'NZ$300 — due no later than 14 days before the event'],
+    ['Balance', 'Payable within 7 days after completion of the event'],
     ['Travel', 'Included'],
     ['Accommodation', 'Additional if required']
   ]);
@@ -462,14 +419,12 @@ function appendConfirmedRunningOrder_(body, program) {
 }
 
 function appendNextSteps_(body) {
-  const split = speedShearPaymentSplit_();
   appendBlock_(body, cell => {
     sectionHeading_(cell, 'What happens next?');
     cell.appendParagraph('1. Waimarino Shears reviews this booking request.').setSpacingAfter(2);
-    cell.appendParagraph(`2. A ${moneyMinor_(split.depositTotalMinor)} deposit invoice is sent to the organiser. This is the ${moneyMinor_(split.depositBaseMinor)} deposit plus ${moneyMinor_(split.depositGstMinor)} GST.`).setSpacingAfter(2);
-    cell.appendParagraph(`3. The remaining ${moneyMinor_(split.balanceTotalMinor, true)} is invoiced after the competition (${moneyMinor_(split.balanceBaseMinor)} remaining hire plus ${moneyMinor_(split.balanceGstMinor, true)} GST). GST is split across the two invoices and is not charged twice.`).setSpacingAfter(2);
-    cell.appendParagraph('4. The booking is confirmed once the deposit invoice has been paid.').setSpacingAfter(2);
-    cell.appendParagraph(`5. If changes are needed after submission, email ${SETTINGS.receiverEmail} and quote your Booking Reference. Please do not submit another booking request.`).setSpacingAfter(2);
+    cell.appendParagraph('2. A $300 deposit invoice is sent to the organiser.').setSpacingAfter(2);
+    cell.appendParagraph('3. The booking is confirmed once the deposit has been paid.').setSpacingAfter(2);
+    cell.appendParagraph(`4. If changes are needed after submission, email ${SETTINGS.receiverEmail} and quote your Booking Reference. Please do not submit another booking request.`).setSpacingAfter(2);
   });
 }
 
@@ -512,10 +467,8 @@ function sendInternalBookingEmail_(pack, files, entryManagerHandoff, eventSystem
 function sendOrganiserConfirmation_(pack, pdf) {
   if (!pack.booking.email) return;
 
-  const split = speedShearPaymentSplit_();
   const reference = pack.identity && pack.identity.bookingReference || '';
   const subject = `Waimarino Shears — Booking Request Received — ${reference}`;
-  const paymentExplanation = `The ${moneyMinor_(split.hireBaseMinor)} hire fee plus GST is paid in two parts: ${moneyMinor_(split.depositBaseMinor)} + ${moneyMinor_(split.depositGstMinor)} GST (${moneyMinor_(split.depositTotalMinor)} total) for the deposit, then ${moneyMinor_(split.balanceBaseMinor)} + ${moneyMinor_(split.balanceGstMinor, true)} GST (${moneyMinor_(split.balanceTotalMinor, true)} total) for the remaining balance. GST totals ${moneyMinor_(split.totalGstMinor, true)} across the booking and is not charged twice.`;
   const html = `
     <div style="font-family:Arial,sans-serif;color:#111;max-width:640px">
       <h2 style="margin-bottom:6px">Booking request received</h2>
@@ -525,11 +478,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
       <p>Your completed Booking Pack PDF is attached for your records.</p>
       <div style="border-left:5px solid ${SETTINGS.brandRed};background:#fff4f4;padding:12px 14px;margin:18px 0">
         <strong>Your booking is not confirmed yet.</strong><br>
-        Waimarino Shears will review the request and send a <strong>${moneyMinor_(split.depositTotalMinor)} deposit invoice</strong>. This is the ${moneyMinor_(split.depositBaseMinor)} deposit plus ${moneyMinor_(split.depositGstMinor)} GST. The booking is confirmed once that invoice has been paid.
-      </div>
-      <div style="background:#f6f6f6;padding:12px 14px;margin:18px 0">
-        <strong>How GST is split</strong><br>
-        ${escapeHtml_(paymentExplanation)}
+        Waimarino Shears will review the request and send the $300 deposit invoice. The booking is confirmed once the deposit has been paid.
       </div>
       <p><strong>Need to make a change?</strong> Email <a href="mailto:${SETTINGS.receiverEmail}">${SETTINGS.receiverEmail}</a> and quote your Booking Reference. Please do not submit another booking request.</p>
       <p>If anything needs checking, we will contact you.</p>
@@ -539,7 +488,7 @@ function sendOrganiserConfirmation_(pack, pdf) {
   MailApp.sendEmail({
     to: pack.booking.email,
     subject,
-    body: `We have received your booking request for ${pack.booking.competitionName}. Booking Reference: ${reference}. Your Booking Pack PDF is attached. Your booking is not confirmed until the ${moneyMinor_(split.depositTotalMinor)} deposit invoice has been paid. ${paymentExplanation} If changes are needed, email ${SETTINGS.receiverEmail}, quote your Booking Reference, and do not submit another booking request.`,
+    body: `We have received your booking request for ${pack.booking.competitionName}. Booking Reference: ${reference}. Your Booking Pack PDF is attached. Your booking is not confirmed until the deposit has been paid. If changes are needed, email ${SETTINGS.receiverEmail}, quote your Booking Reference, and do not submit another booking request.`,
     htmlBody: html,
     name: SETTINGS.senderName,
     replyTo: SETTINGS.receiverEmail,
@@ -548,7 +497,6 @@ function sendOrganiserConfirmation_(pack, pdf) {
 }
 
 function buildInternalEmailHtml_(pack, entryManagerHandoff, eventSystemHandoff) {
-  const split = speedShearPaymentSplit_();
   const judging = pack.competitionSetup && pack.competitionSetup.judging || {};
   return `
     <div style="font-family:Arial,sans-serif;color:#111;max-width:720px">
@@ -563,8 +511,6 @@ function buildInternalEmailHtml_(pack, entryManagerHandoff, eventSystemHandoff) 
         ${emailRow_('Venue', pack.booking.venue)}
         ${emailRow_('Date', formatEventDate_(pack.booking.competitionDate))}
         ${emailRow_('Start time', formatEventTime_(pack.booking.startTime))}
-        ${emailRow_('Deposit invoice', `${moneyMinor_(split.depositBaseMinor)} + ${moneyMinor_(split.depositGstMinor)} GST = ${moneyMinor_(split.depositTotalMinor)}`)}
-        ${emailRow_('Final balance invoice', `${moneyMinor_(split.balanceBaseMinor)} + ${moneyMinor_(split.balanceGstMinor, true)} GST = ${moneyMinor_(split.balanceTotalMinor, true)}`)}
         ${emailRow_('Pen judges', judging.penJudges == null ? 0 : judging.penJudges)}
         ${emailRow_('Board judge', judging.boardJudge ? `Yes — ${judging.boardJudges || 0}` : 'No')}
         ${emailRow_('Programme confirmed', pack.competitionSetup && pack.competitionSetup.programmeConfirmed ? 'Yes' : 'No')}
