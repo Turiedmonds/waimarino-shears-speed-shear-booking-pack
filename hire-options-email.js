@@ -1,6 +1,6 @@
 (() => {
   if (window.__waimarinoHireOptionsEmailVersion) return;
-  window.__waimarinoHireOptionsEmailVersion = '1.0.4';
+  window.__waimarinoHireOptionsEmailVersion = '1.0.5';
 
   const EMAIL = 'Waimarinoshears@gmail.com';
   const TRAVEL_POLICY = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
@@ -67,6 +67,10 @@
       `Venue: ${pack.booking.venue || '—'}`,
       `Date: ${typeof humanDate === 'function' ? humanDate(pack.booking.competitionDate) : (pack.booking.competitionDate || '—')}`,
       `Start time: ${pack.booking.startTime || '—'}`,
+      `Hire fee: NZ$750 + NZ$112.50 GST = NZ$862.50 total`,
+      `Deposit invoice: NZ$300 deposit + NZ$45 GST = NZ$345 total`,
+      `Final balance invoice: NZ$450 remaining hire + NZ$67.50 GST = NZ$517.50 total`,
+      `GST: Split across the two hire payments; NZ$112.50 total GST is not charged twice`,
       `Travel: ${TRAVEL_POLICY}`,
       '',
       `Setup type: ${setupTypeLabel(pack.hire?.setupType)}`,
@@ -117,7 +121,7 @@
       'Hello Waimarino Shears,', '',
       'Please find my speed shear booking request below.', '',
       bookingSummary(pack), '',
-      'This booking request is not confirmed until the deposit has been paid.',
+      'This booking request is not confirmed until the NZ$345 deposit invoice (NZ$300 deposit + NZ$45 GST) has been paid.',
       `If changes are needed after submission, I will email ${EMAIL} rather than submitting another booking request.`
     ].join('\n');
 
