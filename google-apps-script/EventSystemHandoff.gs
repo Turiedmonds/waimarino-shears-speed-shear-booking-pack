@@ -32,7 +32,14 @@ function eventSystemHandoffForBooking_(pack) {
       phone: String(booking.phone || '').trim()
     },
     commercial: {
+      hireAmountMinor: Number(commercial.hireAmountMinor || 75000),
+      gstRateBps: Number(commercial.gstRateBps || 1500),
       depositAmountMinor: Number(commercial.depositAmountMinor || 30000),
+      depositGstMinor: Number(commercial.depositGstMinor || 4500),
+      depositInvoiceTotalMinor: Number(commercial.depositInvoiceTotalMinor || 34500),
+      balanceAmountMinor: Number(commercial.balanceAmountMinor || 45000),
+      balanceGstMinor: Number(commercial.balanceGstMinor || 6750),
+      balanceInvoiceTotalMinor: Number(commercial.balanceInvoiceTotalMinor || 51750),
       currency: String(commercial.currency || 'NZD').toUpperCase()
     }
   };
