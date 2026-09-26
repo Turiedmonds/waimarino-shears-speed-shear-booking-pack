@@ -1,8 +1,8 @@
 (() => {
-  if (window.__waimarinoBookingPolicyLoaderVersion === '1.2.4') return;
-  window.__waimarinoBookingPolicyLoaderVersion = '1.2.4';
+  if (window.__waimarinoBookingPolicyLoaderVersion === '1.2.5') return;
+  window.__waimarinoBookingPolicyLoaderVersion = '1.2.5';
 
-  const CURRENT_TERMS_VERSION = '28 August 2026';
+  const CURRENT_TERMS_VERSION = '27 September 2026';
   const SUBMISSION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypCyJhLAup1GugHAqIhPZnxKRFZ1Eoaq372Msmv9PL19cu8dvSI2NnSaj_ZajTsdf2YA/exec';
   const SUBMISSION_EMAIL = 'Waimarinoshears@gmail.com';
 
@@ -97,7 +97,7 @@
       state.booking.status = 'submitted';
       try { if (typeof STORAGE_KEY !== 'undefined') localStorage.removeItem(STORAGE_KEY); } catch (_) {}
       if (typeof buildReview === 'function') buildReview();
-      setSubmissionStatus('success', `<strong>Booking request sent.</strong><br>A confirmation email with the Booking Pack PDF and Booking Reference should arrive shortly. Waimarino Shears will review the request and send the $300 deposit invoice. The booking is not confirmed until the deposit has been paid.<br><br><strong>Need to make a change?</strong> Email <a href="mailto:${SUBMISSION_EMAIL}">${SUBMISSION_EMAIL}</a> and quote the Booking Reference in your confirmation email. Please do not submit another booking request.`);
+      setSubmissionStatus('success', `<strong>Booking request sent.</strong><br>A confirmation email with the Booking Pack PDF and Booking Reference should arrive shortly. Waimarino Shears will review the request and send the NZ$345 deposit invoice (NZ$300 deposit + NZ$45 GST). The booking is not confirmed until that invoice has been paid. The later balance is NZ$450 + NZ$67.50 GST (NZ$517.50 total), so GST is split across the two payments and is not charged twice.<br><br><strong>Need to make a change?</strong> Email <a href="mailto:${SUBMISSION_EMAIL}">${SUBMISSION_EMAIL}</a> and quote the Booking Reference in your confirmation email. Please do not submit another booking request.`);
       button.textContent = 'Booking Request Sent';
       button.disabled = true;
     } catch (error) {
@@ -109,7 +109,7 @@
     }
   }, true);
 
-  loadScript('booking-policy-final-core.js?v=1.0.1', 'bookingPolicyFinalCoreScript', () => {
+  loadScript('booking-policy-final-core.js?v=1.0.2', 'bookingPolicyFinalCoreScript', () => {
     loadScript('competition-contact.js?v=1.0.0', 'competitionContactScript', () => {
       loadScript('terms-acceptance-final.js?v=1.1.0', 'termsAcceptanceFinalScript', () => {
         loadScript('multi-booking-drafts.js?v=1.0.1', 'multiBookingDraftsScript', null);
