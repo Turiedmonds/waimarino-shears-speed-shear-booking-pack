@@ -266,7 +266,20 @@
   document.head.appendChild(style);
 
   function installTermsVersionConsistency() {
-    const CURRENT_TERMS_VERSION = '28 August 2026';
+    const CURRENT_TERMS_VERSION = '27 September 2026';
+    const sourceVersion = typeof state !== 'undefined' && state?.booking ? state.booking.termsVersion : null;
+
+    if (sourceVersion && sourceVersion !== CURRENT_TERMS_VERSION && typeof state !== 'undefined' && state?.booking?.termsAccepted) {
+      state.booking.termsAccepted = false;
+      state.booking.acceptedBy = '';
+      state.booking.acceptedAt = null;
+      const checkbox = document.getElementById('termsAccepted');
+      if (checkbox) checkbox.checked = false;
+      const acceptedBy = document.getElementById('acceptedByDisplay');
+      const acceptedAt = document.getElementById('acceptedAtDisplay');
+      if (acceptedBy) acceptedBy.textContent = '—';
+      if (acceptedAt) acceptedAt.textContent = '—';
+    }
 
     function applyCurrentTermsVersion() {
       if (typeof state !== 'undefined' && state?.booking) {
@@ -326,8 +339,18 @@
     }
   }
 
+  function loadPaymentTermsSync() {
+    if (document.getElementById('paymentTermsSyncScript')) return;
+    const script = document.createElement('script');
+    script.id = 'paymentTermsSyncScript';
+    script.src = 'payment-terms-sync.js?v=1.0.0';
+    script.async = false;
+    document.body.appendChild(script);
+  }
+
   installClearButton();
   installConfigurationUiPolish();
   installTermsVersionConsistency();
   loadWaimarinoDialogLayer();
+  loadPaymentTermsSync();
 })();
