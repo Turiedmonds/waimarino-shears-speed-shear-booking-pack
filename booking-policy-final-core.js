@@ -1,9 +1,9 @@
 (() => {
   if (window.__waimarinoBookingPolicyFinalVersion) return;
-  window.__waimarinoBookingPolicyFinalVersion = '1.0.1';
+  window.__waimarinoBookingPolicyFinalVersion = '1.0.2';
 
-  const TERMS_VERSION = '28 August 2026';
-  const APP_VERSION = '1.5.1';
+  const TERMS_VERSION = '27 September 2026';
+  const APP_VERSION = '1.5.2';
   const TRAVEL_SHORT = 'Included for competitions up to 200 km by road, one way, from Raetihi. Beyond this distance, an additional travel charge may apply and will be quoted and agreed before the booking is confirmed.';
 
   function clearOldTermsAcceptance(sourceVersion) {
@@ -26,6 +26,16 @@
     if (typeof state === 'undefined') return;
     if (state.booking) state.booking.termsVersion = TERMS_VERSION;
     state.commercial = state.commercial || {};
+    state.commercial.hireAmountMinor = 75000;
+    state.commercial.gstRateBps = 1500;
+    state.commercial.totalGstMinor = 11250;
+    state.commercial.bookingTotalMinor = 86250;
+    state.commercial.depositAmountMinor = 30000;
+    state.commercial.depositGstMinor = 4500;
+    state.commercial.depositInvoiceTotalMinor = 34500;
+    state.commercial.balanceAmountMinor = 45000;
+    state.commercial.balanceGstMinor = 6750;
+    state.commercial.balanceInvoiceTotalMinor = 51750;
     state.commercial.travelIncluded = true;
     state.commercial.travelIncludedOneWayKm = 200;
     state.commercial.travelOrigin = 'Raetihi';
@@ -70,8 +80,8 @@
 
     terms.innerHTML = `
       <h4>Hire fee and payment</h4>
-      <p>The standard hire fee is NZ$750 plus GST. Travel is included for competitions up to <strong>200 km by road, one way, from Raetihi</strong>. For competitions beyond this distance, an additional travel charge may apply. Any additional travel charge will be quoted and agreed with the organiser before the booking is confirmed.</p>
-      <p>A NZ$300 deposit is due no later than 14 days before the event. The booking is confirmed once the deposit has been paid. The remaining balance is payable within 7 days after the event. Separate invoices will be issued for the deposit and remaining balance. If the deposit is not received by the due date after reminders, Waimarino Shears Incorporated may treat the booking as cancelled.</p>
+      <p>The standard hire fee is <strong>NZ$750 plus GST</strong>. GST on the standard hire is NZ$112.50, making the standard booking total NZ$862.50. Travel is included for competitions up to <strong>200 km by road, one way, from Raetihi</strong>. For competitions beyond this distance, an additional travel charge may apply. Any additional travel charge will be quoted and agreed with the organiser before the booking is confirmed.</p>
+      <p>Payment of the standard hire is split into two parts. The first invoice is a <strong>NZ$300 deposit plus NZ$45 GST (NZ$345 total)</strong>, due no later than 14 days before the event. The booking is confirmed once that deposit invoice has been paid. The remaining invoice is <strong>NZ$450 plus NZ$67.50 GST (NZ$517.50 total)</strong>, payable within 7 days after the event. Across both invoices, GST totals NZ$112.50. <strong>GST is apportioned between the two payments and is not charged twice.</strong> If the deposit is not received by the due date after reminders, Waimarino Shears Incorporated may treat the booking as cancelled.</p>
 
       <h4>Accommodation</h4>
       <p>Accommodation is not included in the standard hire fee. Accommodation may be required because of travel, event timing or a day-before setup. If accommodation is required, Waimarino Shears Incorporated will arrange it and charge the organiser the actual accommodation cost in addition to the hire fee. The organiser will be advised of the cost before booking where possible.</p>
@@ -100,13 +110,13 @@
 
       <h4>Cancellation</h4>
       <p>If the organiser cancels before the Waimarino Shears team has departed for the event, amounts already paid will be refunded except for non-refundable accommodation, custom branding panels that have already been ordered, or other costs already incurred specifically for that booking.</p>
-      <p>If cancellation occurs after our team has departed for the event, the NZ$300 deposit is non-refundable. Non-refundable accommodation costs and any custom branding costs already incurred also remain payable.</p>
+      <p>If cancellation occurs after our team has departed for the event, the deposit payment of <strong>NZ$345 (NZ$300 deposit plus NZ$45 GST)</strong> is non-refundable. Non-refundable accommodation costs and any custom branding costs already incurred also remain payable.</p>
       <p id="brandingCancellationTerm"><strong>Competition branding:</strong> Once custom competition branding panels have been ordered, the branding cost is not refundable if the organiser later cancels the event because the panels are produced specifically for that competition. The panels remain the property of the organiser and any completed panels will be made available to them.</p>
       <p>If Waimarino Shears Incorporated is unable to fulfil the booking, hire amounts paid by the organiser will be refunded. Any custom branding panels already paid for remain the property of the organiser and will be made available to them.</p>
 
       <h4>Postponement</h4>
       <p>If an event is postponed before our team has departed, the booking and deposit may be transferred to one new date agreed by both parties, subject to Waimarino Shears Incorporated being available. If we cannot service the replacement date, amounts paid will be refunded except for non-refundable costs already incurred, including any custom branding panels already ordered.</p>
-      <p>If an event is postponed after our team has departed, the original NZ$300 deposit is retained. A replacement event date will be treated as a new booking and will require a new deposit. Organiser-owned branding panels may be reused at the replacement event if suitable.</p>
+      <p>If an event is postponed after our team has departed, the original deposit payment of <strong>NZ$345 (NZ$300 deposit plus NZ$45 GST)</strong> is retained. A replacement event date will be treated as a new booking and will require a new deposit. Organiser-owned branding panels may be reused at the replacement event if suitable.</p>
 
       <h4 id="privacyDataUseHeading">Privacy and use of information</h4>
       <p id="privacyDataUseTerm">Waimarino Shears Incorporated handles personal information in accordance with the <strong>Privacy Act 2020</strong>. Personal and competition information supplied through this booking pack is collected for the booking, communication with the organiser, event preparation, timing-system setup and operation, competition records, and technical or data queries relating to the event. Information will be used or disclosed for those purposes, a directly related purpose, or where required or permitted by law. Waimarino Shears Incorporated will protect the information against loss, misuse and unauthorised access or disclosure and will keep personal information only for as long as it is needed for a lawful purpose. Requests to access or correct personal information can be made by emailing <a href="mailto:Waimarinoshears@gmail.com">Waimarinoshears@gmail.com</a>.</p>`;
@@ -131,6 +141,16 @@
         pack.booking = { ...(pack.booking || {}), termsVersion: TERMS_VERSION };
         pack.commercial = {
           ...(pack.commercial || {}),
+          hireAmountMinor: 75000,
+          gstRateBps: 1500,
+          totalGstMinor: 11250,
+          bookingTotalMinor: 86250,
+          depositAmountMinor: 30000,
+          depositGstMinor: 4500,
+          depositInvoiceTotalMinor: 34500,
+          balanceAmountMinor: 45000,
+          balanceGstMinor: 6750,
+          balanceInvoiceTotalMinor: 51750,
           travelIncluded: true,
           travelIncludedOneWayKm: 200,
           travelOrigin: 'Raetihi',
@@ -163,7 +183,8 @@
         return html
           .replaceAll('19 August 2026', TERMS_VERSION)
           .replaceAll('21 August 2026', TERMS_VERSION)
-          .replaceAll('22 August 2026', TERMS_VERSION);
+          .replaceAll('22 August 2026', TERMS_VERSION)
+          .replaceAll('28 August 2026', TERMS_VERSION);
       };
       wrapped.__bookingPolicyFinalWrapped = true;
       buildHumanPackHtml = wrapped;
